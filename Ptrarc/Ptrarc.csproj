@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <Reference Include="LiteLoader.NET">
-      <HintPath>..\SDK\LiteLoader.NET.dll</HintPath>
+      <HintPath>..\SDK\refs\LiteLoader\LiteLoader.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
 
