@@ -11,12 +11,6 @@ public class Ptrarc : IPluginInitializer {
     public Dictionary<string, string> MetaData => new();
     public Version Version => new(1, 0, 0);
     public void OnInitialize() {
-        _ = EntityExplodeEvent.Subscribe_Ref((ev) => {
-            if (ev.Actor.TypeName == "minecraft:creeper") {
-                ev.Breaking = false;
-            }
-            return true;
-        });
         Thook.RegisterHook<Hide_Seed_Hook, Hide_Seed_HookDelegate>();
     }
 }
