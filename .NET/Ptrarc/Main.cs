@@ -13,18 +13,18 @@ public class Ptrarc : IPluginInitializer
     public Version Version => new(1, 0, 0);
     public void OnInitialize()
     {
-        Thook.RegisterHook<HideSeedHook, HideSeedHookDelegate>();
+        Thook.RegisterHook<RandomSeedHook, RandomSeedHookDelegate>();
     }
 }
 
-internal delegate void HideSeedHookDelegate(IntPtr a1, IntPtr a2);
+internal delegate void RandomSeedHookDelegate(nint a1, nint a2);
 [HookSymbol("?write@StartGamePacket@@UEBAXAEAVBinaryStream@@@Z")]
-internal class HideSeedHook : THookBase<HideSeedHookDelegate>
+internal class RandomSeedHook : THookBase<RandomSeedHookDelegate>
 {
-    public override HideSeedHookDelegate Hook =>
+    public override RandomSeedHookDelegate Hook =>
         (a1, a2) =>
         {
-            Marshal.WriteInt64(a1, 48, 0);
+            Marshal.WriteIntPtr(a1, 48, Random.Shared.Next());
             Original(a1, a2);
         };
 }
