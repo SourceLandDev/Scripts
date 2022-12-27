@@ -4,22 +4,23 @@
         "name": "Ptrarc",
         "description": "用于 源域服务器群 的功能插件",
         "uuid": "c3a57a37-46bc-472c-872a-58b6c4b3c5be",
-        "version": [0, 0, 1],
-        "min_engine_version": [1, 14, 0]
+        "version": [1, 0, 0],
+        "min_engine_version": [1, 19, 51]
     },
     "modules": [
         {
-            "description": "脚本部分",
             "type": "script",
+            "description": "脚本部分",
             "uuid": "504cafed-7903-420e-9493-4d954a34529f",
-            "version": [0, 0, 1],
+            "version": [1, 0, 0],
+            "language": "javascript",
             "entry": "scripts/Main.js"
         }
     ],
     "dependencies": [
         {
-            "module_name": "mojang-minecraft",
-            "version": "1.0.0-beta"
+            "module_name": "@minecraft/server",
+            "version": "1.1.0-beta"
         }
     ]
 }
