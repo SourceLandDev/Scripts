@@ -2,18 +2,18 @@
     "format_version": 2,
     "header": {
         "name": "Ptrarc",
-        "description": "用于 源域服务器群 的功能插件",
+        "description": "用于 源域服务器群 的行为包",
         "uuid": "c3a57a37-46bc-472c-872a-58b6c4b3c5be",
         "version": [1, 0, 0],
         "min_engine_version": [1, 19, 51]
     },
     "modules": [
         {
-            "type": "script",
             "description": "脚本部分",
+            "type": "script",
+            "language": "javascript",
             "uuid": "504cafed-7903-420e-9493-4d954a34529f",
             "version": [1, 0, 0],
-            "language": "javascript",
             "entry": "scripts/Main.js"
         }
     ],

@@ -1,1 +1,1 @@
-import "scripts/AntiCreeper.js";
+import "AntiCreeper.js";
