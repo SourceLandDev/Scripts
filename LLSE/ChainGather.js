@@ -187,30 +187,28 @@ const durability = {
 };
 const db = {};
 mc.listen("onJoin", (pl) => (db[pl.xuid] = defaultState));
-mc.listen("onUseItemOn", (pl, it, _bl, _side, _pos) => {
+mc.listen("onUseItem", (pl, it) => {
     if (!(it.type in blockList)) return;
     pl.tell(
         `连锁采集已${
-            (db[ori.player.xuid] = db[ori.player.xuid] ? false : true)
-                ? "启用"
-                : "禁用"
+            (db[pl.xuid] = db[pl.xuid] ? false : true) ? "启用" : "禁用"
         }`,
         5
     );
+    return false;
 });
-mc.listen("onDestroyBlock", (player, block) => {
-    const item = player.getHand();
-    const isNull = item.isNull();
+mc.listen("onDestroyBlock", (pl, bl) => {
+    const it = pl.getHand();
+    const isNull = it.isNull();
     const maxChain = (
         isNull
             ? blockList.empty
-            : !blockList[item.type]
+            : !blockList[it.type]
             ? blockList.undefined
-            : blockList[item.type]
-    )[block.type];
-    if (!db[player.xuid] || player.gameMode == 1 || !maxChain || maxChain < 1)
-        return;
-    const tag = item.getNbt().getTag("tag");
+            : blockList[it.type]
+    )[bl.type];
+    if (!db[pl.xuid] || pl.gameMode == 1 || !maxChain || maxChain < 1) return;
+    const tag = it.getNbt().getTag("tag");
     const ench = tag ? tag.getData("ench") : undefined;
     let haveSilk = 0;
     let unbreaking = 100;
@@ -222,31 +220,23 @@ mc.listen("onDestroyBlock", (player, block) => {
     if (haveSilk) return;
     let lessDurability = 2031;
     for (const k in durability) {
-        if (!new RegExp(k).test(item.type)) continue;
+        if (!new RegExp(k).test(it.type)) continue;
         lessDurability = durability[k];
     }
-    destroy(player, block, isNull, item, unbreaking, lessDurability, maxChain);
+    destroy(pl, bl, isNull, it, unbreaking, lessDurability, maxChain);
 });
-function destroy(
-    player,
-    block,
-    isNull,
-    item,
-    unbreaking,
-    lessDurability,
-    maxChain
-) {
+function destroy(pl, bl, isNull, it, unbreaking, lessDurability, maxChain) {
     let chainCount = 0;
     for (
         let i = 0, j = 1;
         i < 3;
         i = j == -1 ? i + 1 : i, j = j == 1 ? -1 : 1
     ) {
-        const x = i == 0 ? block.pos.x + j : block.pos.x;
-        const y = i == 1 ? block.pos.y + j : block.pos.y;
-        const z = i == 2 ? block.pos.z + j : block.pos.z;
-        if (chainCount >= maxChain || (!isNull && item.isNull())) continue;
-        const nextBlock = mc.getBlock(x, y, z, block.pos.dimid);
+        const x = i == 0 ? bl.pos.x + j : bl.pos.x;
+        const y = i == 1 ? bl.pos.y + j : bl.pos.y;
+        const z = i == 2 ? bl.pos.z + j : bl.pos.z;
+        if (chainCount >= maxChain || (!isNull && it.isNull())) continue;
+        const nextBlock = mc.getBlock(x, y, z, bl.pos.dimid);
         if (
             !ll.hasExported("ILAPI_PosGetLand") ||
             (ll.hasExported("ILAPI_PosGetLand") &&
@@ -254,14 +244,14 @@ function destroy(
                     x: x,
                     y: y,
                     z: z,
-                    dimid: block.pos.dimid,
+                    dimid: bl.pos.dimid,
                 }) == "-1" &&
-                nextBlock.type == block.type &&
+                nextBlock.type == bl.type &&
                 nextBlock.destroy(true))
         ) {
             chainCount++;
             if (Math.floor(Math.random() * 99) < unbreaking && !isNull) {
-                const nbt = item.getNbt();
+                const nbt = it.getNbt();
                 let tag = nbt.getTag("tag");
                 if (!tag) {
                     nbt.setTag(
@@ -275,15 +265,15 @@ function destroy(
                 let data = tag.getData("Damage") ?? 0;
                 if (++data < lessDurability) {
                     tag.setInt("Damage", data);
-                    item.setNbt(nbt);
-                } else item.setNull();
-                player.refreshItems();
+                    it.setNbt(nbt);
+                } else it.setNull();
+                pl.refreshItems();
             }
             chainCount += destroy(
-                player,
+                pl,
                 nextBlock,
                 isNull,
-                item,
+                it,
                 unbreaking,
                 lessDurability,
                 maxChain
