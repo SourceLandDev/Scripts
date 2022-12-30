@@ -1,6 +1,6 @@
 /*
 English:
-    DynamicMaxPlayer
+    DynamicMaxPlayers
     Copyright (C) 2022  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("DynamicMaxPlayer", "动态最多同时在线人数", [1, 0, 0]);
+ll.registerPlugin("DynamicMaxPlayers", "动态最多同时在线人数", [1, 0, 0]);
 
 mc.listen("onPreJoin", () =>
     mc.setMaxPlayers(mc.getOnlinePlayers().length + 1)
