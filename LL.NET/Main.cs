@@ -24,7 +24,7 @@ internal class RandomSeedHook : THookBase<RandomSeedHookDelegate>
     public override RandomSeedHookDelegate Hook =>
         (a1, a2) =>
         {
-            Marshal.WriteIntPtr(a1, 48, Random.Shared.Next());
+            Marshal.WriteInt64(a1, 48, Random.Shared.NextInt64());
             Original(a1, a2);
         };
 }
