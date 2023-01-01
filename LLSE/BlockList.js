@@ -33,15 +33,13 @@ English:
 "use strict";
 ll.registerPlugin("BlockList", "封禁名单支持", [1, 0, 0]);
 
-let jsonstr = File.readFrom("blocklist.json");
-if (!jsonstr) File.writeTo("blocklist.json", (jsonstr = "[]"));
-let db = data.parseJson(jsonstr);
+let db = data.parseJson(File.readFrom("blocklist.json") ?? data.toJson([]));
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("blocklist", "封禁用户。");
     cmd.setEnum("ChangeAction", ["add", "remove"]);
     cmd.setEnum("OtherAction", ["update"]);
-    cmd.mandatory("action", ParamType.Enum, "ChangeAction", 1);
-    cmd.mandatory("action", ParamType.Enum, "OtherAction", 1);
+    cmd.mandatory("action", ParamType.Enum, "ChangeAction");
+    cmd.mandatory("action", ParamType.Enum, "OtherAction");
     cmd.mandatory("player", ParamType.String);
     cmd.optional("message", ParamType.String);
     cmd.overload(["ChangeAction", "player", "message"]);
@@ -72,7 +70,7 @@ mc.listen("onServerStarted", () => {
                     message: res.message ?? "",
                     clientIds: pl ? [] : [pl.getDevice().clientId],
                 });
-                File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
+                File.writeTo("blocklist.json", data.toJson(db));
                 return out.success("封禁成功");
             }
             case "remove": {
@@ -83,15 +81,13 @@ mc.listen("onServerStarted", () => {
                         item.names.includes(res.player)
                     );
                 });
-                File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
+                File.writeTo("blocklist.json", data.toJson(db));
                 return out.success("解禁成功");
             }
             case "update": {
-                jsonstr = File.readFrom("blocklist.json");
-                if (!jsonstr) {
-                    File.writeTo("blocklist.json", (jsonstr = "[]"));
-                }
-                db = data.parseJson(jsonstr);
+                db = data.parseJson(
+                    File.readFrom("blocklist.json") ?? data.toJson([])
+                );
                 return out.success("更新成功");
             }
         }
@@ -118,7 +114,7 @@ mc.listen("onPreJoin", (pl) => {
         if (!blData.clientIds.includes(device.clientId))
             cache.clientIds.push(device.clientId);
         db[db.indexOf(blData)] = cache;
-        File.writeTo("blocklist.json", (jsonstr = data.toJson(db)));
+        File.writeTo("blocklist.json", data.toJson(db));
         break;
     }
 });

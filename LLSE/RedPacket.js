@@ -41,8 +41,8 @@ mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开红包菜单。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
-        if (ori.player) return main(ori.player);
-        return out.error("commands.generic.noTargetMatch");
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        main(ori.player);
     });
     cmd.setup();
 });

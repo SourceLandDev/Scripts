@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 3]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 4]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -70,9 +70,8 @@ const serviceCharge = config.init("serviceCharge", 0.02);
 config.close();
 let db = new KVDatabase("plugins/Bazaar/data");
 // For compatibility
-{
-    if (db.get("items") && db.get("offers")) return;
-    const keys = db.listKey();
+const keys = db.listKey();
+if (!(db.get("items") && db.get("offers") && keys.length > 0)) {
     db.close();
     File.rename("plugins/Bazaar/data", "plugins/Bazaar/data_v1");
     db = new KVDatabase("plugins/Bazaar/data");
@@ -114,7 +113,7 @@ let db = new KVDatabase("plugins/Bazaar/data");
     db.set("items", items);
     db.set("offers", {});
     db.set("sellers", sellers);
-}
+} // For compatibility
 const ench = [
     "保护",
     "火焰保护",
@@ -204,8 +203,8 @@ mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开集市。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
-        if (ori.player) return main(ori.player);
-        return out.error("commands.generic.noTargetMatch");
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        main(ori.player);
     });
     cmd.setup();
 });

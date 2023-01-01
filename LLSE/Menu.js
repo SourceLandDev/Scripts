@@ -51,8 +51,8 @@ mc.listen("onServerStarted", () => {
         const cmd = mc.newCommand(commands[command], title, PermType.Any);
         cmd.overload();
         cmd.setCallback((_cmd, ori, out, _res) => {
-            if (ori.player) return menu(ori.player, command);
-            return out.error("commands.generic.noTargetMatch");
+            if (!ori.player) return out.error("commands.generic.noTargetMatch");
+            menu(ori.player, command);
         });
         cmd.setup();
     }

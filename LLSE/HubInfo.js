@@ -134,8 +134,8 @@ mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand("hubinfo", "打开信息栏设置。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
-        if (ori.player) return setup(ori.player);
-        return out.error("commands.generic.noTargetMatch");
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        setup(ori.player);
     });
     cmd.setup();
 });
