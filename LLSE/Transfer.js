@@ -48,7 +48,7 @@ mc.listen("onServerStarted", () => {
 });
 function main(pl) {
     const xp = pl.getCurrentExperience();
-    if (xp <= 0) return pl.tell("§c转账失败：余额不足");
+    if (xp <= 0) return pl.sendToast("经济", "§c转账失败：余额不足");
     const plsnm = [];
     const plxuid = [];
     for (const pl1 of mc.getOnlinePlayers())
@@ -56,7 +56,8 @@ function main(pl) {
             plsnm.push(pl1.realName);
             plxuid.push(pl1.xuid);
         }
-    if (plsnm.length <= 0) return pl.tell("§c转账失败：暂无可转账用户");
+    if (plsnm.length <= 0)
+        return pl.sendToast("经济", "§c转账失败：暂无可转账用户");
     const fm = mc.newCustomForm();
     fm.setTitle("转账菜单");
     fm.addDropdown("目标", plsnm);
@@ -65,13 +66,17 @@ function main(pl) {
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
         const plto = mc.getPlayer(plxuid[args[0]]);
-        if (!plto) return pl.tell(`§c转账失败：${plsnm[args[0]]}已离线`);
+        if (!plto)
+            return pl.sendToast("经济", `§c转账失败：${plsnm[args[0]]}已离线`);
         if (args[1] > pl.getCurrentExperience())
-            return pl.tell("§c转账失败：余额不足");
+            return pl.sendToast("经济", "§c转账失败：余额不足");
         pl.reduceExperience(args[1]);
         const rlv = Math.round(args[1] * rate);
         plto.reduceExperience(rlv);
-        pl.tell(`转账成功：向${plto.realName}转账${args[1]}经验值`);
-        plto.tell(`${pl.realName}向您转账${rlv}经验值`);
+        pl.sendToast(
+            "经济",
+            `转账成功：向${plto.realName}转账${args[1]}经验值`
+        );
+        plto.sendToast("经济", `${pl.realName}向您转账${rlv}经验值`);
     });
 }

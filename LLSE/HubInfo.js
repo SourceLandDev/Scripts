@@ -148,7 +148,8 @@ function setup(pl) {
         const old = db.get(pl.xuid);
         if (args[0] == old) return;
         db.set(pl.xuid, args[0]);
-        pl.tell(
+        pl.sendToast(
+            "信息",
             `信息栏${args[0] ? (old ? "状态修改成功" : "已启用") : "已禁用"}`
         );
     });

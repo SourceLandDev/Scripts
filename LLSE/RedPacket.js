@@ -70,7 +70,7 @@ function main(pl) {
         switch (arg) {
             case 0:
                 if (pl.getLevel() <= 0)
-                    return pl.tell("§c红包发送失败：余额不足");
+                    return pl.sendToast("经济", "§c红包发送失败：余额不足");
                 return send(pl);
             default:
                 redpacket(pl, keys[arg - 1]);
@@ -89,8 +89,9 @@ function redpacket(pl, key) {
         rpdata.recipient[pl.xuid] = { time: system.getTimeStr() };
         db.set(key, rpdata);
         pl.addExperience(rpdata.level);
-        pl.tell(
-            `您领取了${data.xuid2name(rpdata.sender)}的红包${rpdata.msg}获得了${
+        pl.sendToast(
+            "经济",
+            `领取${data.xuid2name(rpdata.sender)}的红包${rpdata.msg}成功：获得${
                 rpdata.level
             }经验值`
         );
@@ -116,7 +117,7 @@ function send(pl) {
         if (!args) return main(pl);
         const count = args[1] * args[2];
         if (count > pl.getCurrentExperience())
-            return pl.tell("§c红包发送失败：余额不足");
+            return pl.sendToast("经济", "§c红包发送失败：余额不足");
         pl.reduceExperience(count);
         const guid = system.randomGuid();
         db.set(guid, {
@@ -127,6 +128,6 @@ function send(pl) {
             time: system.getTimeStr(),
             recipient: {},
         });
-        pl.tell(`红包${args[0]}发送成功`);
+        pl.sendToast("经济", `红包${args[0]}发送成功`);
     });
 }

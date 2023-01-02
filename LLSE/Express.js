@@ -54,7 +54,8 @@ function main(pl) {
             plsnm.push(plget.realName);
             plsxuid.push(plget.xuid);
         }
-    if (plsnm.length <= 0) return pl.tell("§c物品送达失败：暂无可送达用户");
+    if (plsnm.length <= 0)
+        return pl.sendToast("物流", "§c送达失败：暂无可送达用户");
     const fm = mc.newCustomForm();
     fm.setTitle("快递菜单");
     fm.addDropdown("目标", plsnm);
@@ -71,7 +72,7 @@ function main(pl) {
         );
         items.push(item);
     }
-    if (items.length <= 0) return pl.tell("§c物品送达失败：背包为空");
+    if (items.length <= 0) return pl.sendToast("物流", "§c送达失败：背包为空");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
         const level = pl.getLevel();
@@ -79,11 +80,15 @@ function main(pl) {
             serviceCharge[1] + serviceCharge[1] * level * 0.02
         );
         if (level < condition) {
-            pl.tell(`§c物品送达失败：余额不足（需要${condition}级经验）`);
+            pl.sendToast(
+                "物流",
+                `§c送达失败：余额不足（需要${condition}级经验）`
+            );
             return main(pl);
         }
         const pl1 = mc.getPlayer(plsxuid[args[0]]);
-        if (!pl1) return pl.tell(`§c物品送达失败：${plsnm[args[0]]}已离线`);
+        if (!pl1)
+            return pl.sendToast("物流", `§c送达失败：${plsnm[args[0]]}已离线`);
         args.shift();
         const reduce = Math.round(
             Math.random() * (serviceCharge[0] - condition) + condition
@@ -93,8 +98,9 @@ function main(pl) {
             if (args[index] <= 0) continue;
             const item = items[index];
             if (item.count < args[index]) {
-                pl.tell(
-                    `§c物品${item.name}§r*${args[index]}送达失败：数量不足`
+                pl.sendToast(
+                    "物流",
+                    `§c${item.name}§r*${args[index]}送达失败：数量不足`
                 );
                 continue;
             }
@@ -113,7 +119,7 @@ function main(pl) {
         }
         if (sendItems.length <= 0) return;
         pl.reduceLevel(reduce);
-        pl.tell(`已向${pl1.realName}发送了以下物品（花费${reduce}级经验）：`);
+        pl.tell(`向${pl1.realName}发送了以下物品（花费${reduce}级经验）：`);
         pl1.tell(`${pl.realName}向您发送了以下物品：`);
         for (const item of sendItems) {
             pl.tell(`${item.name}§r*${item.count}`);

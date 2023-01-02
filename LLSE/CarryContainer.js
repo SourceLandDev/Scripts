@@ -34,37 +34,37 @@ English:
 ll.registerPlugin("CarryContainer", "搬运容器", [1, 0, 8]);
 
 const db = new KVDatabase("plugins/CarryContainer/data");
-mc.listen("onUseItemOn", (player, item, block, side) => {
-    const container = db.get(player.xuid);
-    if (!container) {
-        if (!block.hasContainer()) return;
-        const container = block.getContainer();
+mc.listen("onUseItemOn", (pl, it, bl, side) => {
+    const co = db.get(pl.xuid);
+    if (!co) {
+        if (!bl.hasContainer()) return;
+        const co = bl.getContainer();
         if (
-            !player.sneaking ||
-            !player.getHand().isNull() ||
-            block.type.match("shulker_box") ||
-            container.size > 32
+            !pl.sneaking ||
+            !pl.getHand().isNull() ||
+            bl.type.match("shulker_box") ||
+            co.size > 32
         )
             return;
-        db.set(player.xuid, {
-            block: block.getNbt().toSNBT(),
-            blockEntity: block.getBlockEntity().getNbt().toSNBT(),
-            name: block.name,
+        db.set(pl.xuid, {
+            block: bl.getNbt().toSNBT(),
+            blockEntity: bl.getBlockEntity().getNbt().toSNBT(),
+            name: bl.name,
         });
-        container.removeAllItems();
-        mc.setBlock(block.pos, "minecraft:air");
+        co.removeAllItems();
+        mc.setBlock(bl.pos, "minecraft:air");
         return false;
     }
-    if (!item.isNull()) return;
+    if (!it.isNull()) return;
     const pos = mc.newIntPos(
-        block.pos.x + (side == 5 ? 1 : side == 4 ? -1 : 0),
-        block.pos.y + (side == 1 ? 1 : side == 0 ? -1 : 0),
-        block.pos.z + (side == 3 ? 1 : side == 2 ? -1 : 0),
-        block.pos.dimid
+        bl.pos.x + (side == 5 ? 1 : side == 4 ? -1 : 0),
+        bl.pos.y + (side == 1 ? 1 : side == 0 ? -1 : 0),
+        bl.pos.z + (side == 3 ? 1 : side == 2 ? -1 : 0),
+        bl.pos.dimid
     );
     if (!mc.getBlock(pos).isAir) return;
-    const facing = player.direction.toFacing();
-    const blockNBT = NBT.parseSNBT(container.block);
+    const facing = pl.direction.toFacing();
+    const blockNBT = NBT.parseSNBT(co.block);
     mc.setBlock(
         pos,
         blockNBT.setTag(
@@ -78,18 +78,16 @@ mc.listen("onUseItemOn", (player, item, block, side) => {
         )
     );
     setTimeout(() => {
-        mc.getBlock(pos)
-            .getBlockEntity()
-            .setNbt(NBT.parseSNBT(container.blockEntity));
+        mc.getBlock(pos).getBlockEntity().setNbt(NBT.parseSNBT(co.blockEntity));
     }, 50);
-    db.delete(player.xuid);
+    db.delete(pl.xuid);
     return false;
 });
 mc.listen("onTick", () => {
     for (const xuid of db.listKey()) {
-        const player = mc.getPlayer(xuid);
-        if (!player) continue;
-        player.tell(`正在搬运${db.get(xuid).name}`, 5);
+        const pl = mc.getPlayer(xuid);
+        if (!pl) continue;
+        pl.tell(`正在搬运${db.get(xuid).name}`, 5);
     }
 });
 mc.listen("onChangeSprinting", (pl, isSprinting) => {
