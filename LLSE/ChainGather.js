@@ -186,16 +186,28 @@ const durability = {
     netherite: 2031,
 };
 const db = {};
+const array = [];
 mc.listen("onJoin", (pl) => (db[pl.xuid] = defaultState));
 mc.listen("onUseItem", (pl, it) => {
     if (!(it.type in blockList)) return;
-    pl.tell(
-        `连锁采集已${
-            (db[pl.xuid] = db[pl.xuid] ? false : true) ? "启用" : "禁用"
-        }`,
-        5
-    );
+    array.push(pl.xuid);
+    setTimeout(() => {
+        const index = array.indexOf(pl.xuid);
+        if (index < 0) return;
+        array.splice(index, 1);
+        pl.tell(
+            `连锁采集已${
+                (db[pl.xuid] = db[pl.xuid] ? false : true) ? "启用" : "禁用"
+            }`,
+            5
+        );
+    }, 100);
     return false;
+});
+mc.listen("onStartDestroyBlock", (pl) => {
+    const index = array.indexOf(pl.xuid);
+    if (index < 0) return;
+    array.splice(index, 1);
 });
 mc.listen("onDestroyBlock", (pl, bl) => {
     const it = pl.getHand();
