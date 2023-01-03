@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 4]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 5]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -57,8 +57,7 @@ const eco = (() => {
         case "exp":
             return {
                 add: (pl, money) => pl.addExperience(money),
-                reduce: (pl, money, isLv) =>
-                    isLv ? pl.reduceLevel(money) : pl.reduceExperience(money),
+                reduce: (pl, money) => pl.reduceExperience(money),
                 get: (pl) => pl.getTotalExperience(),
                 name: "经验值",
             };
@@ -246,43 +245,44 @@ function main(pl) {
     const itemsCount = Object.keys(items).length;
     const offers = db.get("offers") ?? {};
     const offersCount = Object.keys(offers).length;
-    const fm = mc.newSimpleForm();
-    fm.setTitle("集市");
-    fm.addButton(
-        `出售${
-            itemsCount > 0
-                ? `\n${
-                      sellers[pl.xuid].items.length > 0
-                          ? `${sellers[pl.xuid].items.length}/`
-                          : ""
-                  }${itemsCount}`
-                : ""
-        }`
-    );
-    fm.addButton(
-        `回收${
-            offersCount > 0
-                ? `\n${
-                      sellers[pl.xuid].offers.length > 0
-                          ? `${sellers[pl.xuid].offers.length}/`
-                          : ""
-                  }${offersCount}`
-                : ""
-        }`
-    );
-    pl.sendForm(fm, (pl, arg) => {
-        switch (arg) {
-            case 0:
-                return browseItems(pl);
-            case 1:
-                return browseOffers(pl);
+    pl.sendForm(
+        mc
+            .newSimpleForm()
+            .setTitle("集市")
+            .addButton(
+                `出售${
+                    itemsCount > 0
+                        ? `\n${
+                              sellers[pl.xuid].items.length > 0
+                                  ? `${sellers[pl.xuid].items.length}/`
+                                  : ""
+                          }${itemsCount}`
+                        : ""
+                }`
+            )
+            .addButton(
+                `回收${
+                    offersCount > 0
+                        ? `\n${
+                              sellers[pl.xuid].offers.length > 0
+                                  ? `${sellers[pl.xuid].offers.length}/`
+                                  : ""
+                          }${offersCount}`
+                        : ""
+                }`
+            ),
+        (pl, arg) => {
+            switch (arg) {
+                case 0:
+                    return browseItems(pl);
+                case 1:
+                    return browseOffers(pl);
+            }
         }
-    });
+    );
 }
 function browseItems(pl) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle("出售集市");
-    fm.addButton("管理物品");
+    const fm = mc.newSimpleForm().setTitle("出售集市").addButton("管理物品");
     const items = db.get("items") ?? {};
     const itemsKey = Object.keys(items);
     const itemsValue = Object.values(items);
@@ -308,9 +308,7 @@ function browseItems(pl) {
     });
 }
 function browseOffers(pl) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle("回收集市");
-    fm.addButton("管理报价");
+    const fm = mc.newSimpleForm().setTitle("回收集市").addButton("管理报价");
     const offers = db.get("offers") ?? {};
     const offersKey = Object.keys(offers);
     const offersValue = Object.values(offers);
@@ -318,12 +316,11 @@ function browseOffers(pl) {
     for (const offer of offersValue) {
         if (offer.seller == pl.xuid) continue;
         const nbtData = {
-            Name: new NbtString(offers[uuid].type),
-            Damage: new NbtShort(offers[uuid].data),
+            Name: new NbtString(offer.type),
+            Damage: new NbtShort(offer.data),
             Count: new NbtByte(1),
         };
-        if (offers[uuid].ench)
-            nbtData.ench = new NbtCompound(offers[uuid].ench);
+        if (offer.ench) nbtData.ench = new NbtCompound(offer.ench);
         const nbt = new NbtCompound(nbtData);
         const item = mc.newItem(nbt);
         fm.addButton(
@@ -344,9 +341,7 @@ function browseOffers(pl) {
     });
 }
 function itemsManagement(pl) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle("物品管理");
-    fm.addButton("上架物品");
+    const fm = mc.newSimpleForm().setTitle("物品管理").addButton("上架物品");
     const sellers = db.get("sellers") ?? {};
     const items = db.get("items") ?? {};
     for (const uuid of sellers[pl.xuid].items) {
@@ -366,9 +361,7 @@ function itemsManagement(pl) {
     });
 }
 function offersManagement(pl) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle("报价管理");
-    fm.addButton("创建报价");
+    const fm = mc.newSimpleForm().setTitle("报价管理").addButton("创建报价");
     const sellers = db.get("sellers") ?? {};
     const offers = db.get("offers") ?? {};
     for (const uuid of sellers[pl.xuid].offers) {
@@ -409,12 +402,13 @@ function itemBuy(pl, uuid) {
     if (items[uuid].count < canBuyMax) {
         canBuyMax = items[uuid].count;
     }
-    const fm = mc.newCustomForm();
-    fm.setTitle("购买物品");
     const itemNBT = NBT.parseSNBT(items[uuid].snbt);
-    fm.addLabel(`类型：${itemNBT.getTag("Name")}`);
-    fm.addLabel(`单价：${items[uuid].price}`);
-    fm.addLabel(`NBT：${items[uuid].snbt}`);
+    const fm = mc
+        .newCustomForm()
+        .setTitle("购买物品")
+        .addLabel(`类型：${itemNBT.getTag("Name")}`)
+        .addLabel(`单价：${items[uuid].price}`)
+        .addLabel(`NBT：${items[uuid].snbt}`);
     const canBuyMin = 1 / items[uuid].price;
     if (canBuyMin < canBuyMax)
         fm.addSlider("数量", Math.round(canBuyMin), Math.round(canBuyMax));
@@ -506,11 +500,12 @@ function offerProcess(pl, uuid) {
     if (itemCount > offers[uuid].count) {
         itemCount = offers[uuid].count;
     }
-    const fm = mc.newCustomForm();
-    fm.setTitle("报价处理");
-    fm.addLabel(`类型：${offers[uuid].type}`);
-    fm.addLabel(`单价：${offers[uuid].price}/个`);
-    fm.addLabel(`税率：${serviceCharge * 100}％`);
+    const fm = mc
+        .newCustomForm()
+        .setTitle("报价处理")
+        .addLabel(`类型：${offers[uuid].type}`)
+        .addLabel(`单价：${offers[uuid].price}/个`)
+        .addLabel(`税率：${serviceCharge * 100}％`);
     if (itemCount > 1) fm.addSlider("数量", 1, itemCount);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
@@ -616,10 +611,11 @@ function itemUpload(pl, args = [0, "", 1]) {
         );
         if (max < item.count) max = item.count;
     }
-    const fm = mc.newCustomForm();
-    fm.setTitle("上架物品");
-    fm.addDropdown("物品", namesOfItem, args[0]);
-    fm.addInput("价格", "正实型", args[1]);
+    const fm = mc
+        .newCustomForm()
+        .setTitle("上架物品")
+        .addDropdown("物品", namesOfItem, args[0])
+        .addInput("价格", "正实型", args[1]);
     if (max < 2) fm.addLabel("数量：1");
     else fm.addSlider("数量", 1, max, 1, args[2]);
     fm.addLabel(`税率：${serviceCharge * 100}％`);
@@ -679,61 +675,68 @@ function offerCreate(pl, args = ["", "0", "", "", "", 0]) {
         pl.sendToast("集市", "§c报价创建失败：余额不足");
         return offersManagement(pl);
     }
-    const fm = mc.newCustomForm();
-    fm.setTitle("创建报价");
-    fm.addInput("标准类型名", "命名空间:物品名", args[0]);
-    fm.addInput("数据值", "整型", args[1]);
-    fm.addInput("数量", "正整型", args[2]);
-    fm.addInput("价格", "正实型", args[3]);
-    fm.addInput("附魔", "键值对（键值冒号分隔，元素逗号分隔，可空）", args[4]);
-    pl.sendForm(fm, (pl, args) => {
-        if (!args) return offersManagement(pl);
-        if (!args[0] || mc.newItem(args[0], 1).isNull()) {
-            pl.sendToast("集市", "§c报价创建失败：无效类型名");
-            return offerCreate(pl, args);
-        }
-        if (isNaN(args[1])) {
-            pl.sendToast("集市", "§c报价创建失败：无效数据值");
-            return offerCreate(pl, args);
-        }
-        if (args[2] <= 0) {
-            pl.sendToast("集市", "§c报价创建失败：无效数量");
-            return offerCreate(pl, args);
-        }
-        if (args[3] <= 0) {
-            pl.sendToast("集市", "§c报价创建失败：无效价格");
-            return offerCreate(pl, args);
-        }
-        const cost = Math.round(args[2] * args[3]);
-        if (eco.get(pl) < cost) {
-            pl.sendToast("集市", "§c报价创建失败：余额不足");
-            return offerCreate(pl, args);
-        }
-        const offers = db.get("offers") ?? {};
-        const uuid = system.randomGuid();
-        offers[uuid] = {
-            type: args[0],
-            data: Number(args[1]),
-            count: Number(args[2]),
-            price: Number(args[3]),
-            seller: pl.xuid,
-        };
-        if (args[4]) {
-            offers[uuid].ench = {};
-            const dt1 = args[4].split(/,[\s]?/);
-            for (const dat of dt1) {
-                const dt2 = dat.split(":");
-                offers[uuid].ench[dt2[0]] = dt2[1];
+    pl.sendForm(
+        mc
+            .newCustomForm()
+            .setTitle("创建报价")
+            .addInput("标准类型名", "命名空间:物品名", args[0])
+            .addInput("数据值", "整型", args[1])
+            .addInput("数量", "正整型", args[2])
+            .addInput("价格", "正实型", args[3])
+            .addInput(
+                "附魔",
+                "键值对（键值冒号分隔，元素逗号分隔，可空）",
+                args[4]
+            ),
+        (pl, args) => {
+            if (!args) return offersManagement(pl);
+            if (!args[0] || mc.newItem(args[0], 1).isNull()) {
+                pl.sendToast("集市", "§c报价创建失败：无效类型名");
+                return offerCreate(pl, args);
             }
+            if (isNaN(args[1])) {
+                pl.sendToast("集市", "§c报价创建失败：无效数据值");
+                return offerCreate(pl, args);
+            }
+            if (args[2] <= 0) {
+                pl.sendToast("集市", "§c报价创建失败：无效数量");
+                return offerCreate(pl, args);
+            }
+            if (args[3] <= 0) {
+                pl.sendToast("集市", "§c报价创建失败：无效价格");
+                return offerCreate(pl, args);
+            }
+            const cost = Math.round(args[2] * args[3]);
+            if (eco.get(pl) < cost) {
+                pl.sendToast("集市", "§c报价创建失败：余额不足");
+                return offerCreate(pl, args);
+            }
+            const offers = db.get("offers") ?? {};
+            const uuid = system.randomGuid();
+            offers[uuid] = {
+                type: args[0],
+                data: Number(args[1]),
+                count: Number(args[2]),
+                price: Number(args[3]),
+                seller: pl.xuid,
+            };
+            if (args[4]) {
+                offers[uuid].ench = {};
+                const dt1 = args[4].split(/,[\s]?/);
+                for (const dat of dt1) {
+                    const dt2 = dat.split(":");
+                    offers[uuid].ench[dt2[0]] = dt2[1];
+                }
+            }
+            db.set("offers", offers);
+            const sellers = db.get("sellers") ?? {};
+            sellers[pl.xuid].offers.push(uuid);
+            db.set("sellers", sellers);
+            eco.reduce(pl, args[2] * args[3]);
+            pl.sendToast("集市", "报价创建成功");
+            return offerCreate(pl);
         }
-        db.set("offers", offers);
-        const sellers = db.get("sellers") ?? {};
-        sellers[pl.xuid].offers.push(uuid);
-        db.set("sellers", sellers);
-        eco.reduce(pl, args[2] * args[3]);
-        pl.sendToast("集市", "报价创建成功");
-        return offerCreate(pl);
-    });
+    );
 }
 function itemTakedown(pl, uuid) {
     const items = db.get("items") ?? {};
