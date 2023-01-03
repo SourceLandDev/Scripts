@@ -47,9 +47,7 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
-    const fm = mc.newSimpleForm();
-    fm.setTitle("红包列表");
-    fm.addButton("发送红包");
+    const fm = mc.newSimpleForm().setTitle("红包列表").addButton("发送红包");
     const keys = db.listKey();
     for (const key of keys) {
         const rpdata = db.get(key);
@@ -79,8 +77,6 @@ function main(pl) {
 }
 function redpacket(pl, key) {
     const rpdata = db.get(key);
-    const fm = mc.newSimpleForm();
-    fm.setTitle(rpdata.msg || "红包");
     if (
         pl.xuid != rpdata.sender &&
         !(pl.xuid in rpdata.recipient) &&
@@ -103,31 +99,39 @@ function redpacket(pl, key) {
     }/${rpdata.count}\n已领取用户：\n`;
     for (const getter in rpdata.recipient)
         text += `${rpdata.recipient[getter].time} ${data.xuid2name(getter)}\n`;
-    fm.setContent(text);
-    pl.sendForm(fm, main);
+    pl.sendForm(
+        mc
+            .newSimpleForm()
+            .setTitle(rpdata.msg || "红包")
+            .setContent(text),
+        main
+    );
 }
 function send(pl) {
-    const fm = mc.newCustomForm();
-    fm.setTitle("发送红包");
-    fm.addInput("信息", "字符串");
     const xp = pl.getCurrentExperience();
-    fm.addSlider("发送数量", 1, xp);
-    fm.addSlider("单个数额", 1, xp);
-    pl.sendForm(fm, (pl, args) => {
-        if (!args) return main(pl);
-        const count = args[1] * args[2];
-        if (count > pl.getCurrentExperience())
-            return pl.sendToast("经济", "§c红包发送失败：余额不足");
-        pl.reduceExperience(count);
-        const guid = system.randomGuid();
-        db.set(guid, {
-            sender: pl.xuid,
-            msg: args[0],
-            count: args[1],
-            level: args[2],
-            time: system.getTimeStr(),
-            recipient: {},
-        });
-        pl.sendToast("经济", `红包${args[0]}发送成功`);
-    });
+    pl.sendForm(
+        mc
+            .newCustomForm()
+            .setTitle("发送红包")
+            .addInput("信息", "字符串")
+            .addSlider("发送数量", 1, xp)
+            .addSlider("单个数额", 1, xp),
+        (pl, args) => {
+            if (!args) return main(pl);
+            const count = args[1] * args[2];
+            if (count > pl.getCurrentExperience())
+                return pl.sendToast("经济", "§c红包发送失败：余额不足");
+            pl.reduceExperience(count);
+            const guid = system.randomGuid();
+            db.set(guid, {
+                sender: pl.xuid,
+                msg: args[0],
+                count: args[1],
+                level: args[2],
+                time: system.getTimeStr(),
+                recipient: {},
+            });
+            pl.sendToast("经济", `红包${args[0]}发送成功`);
+        }
+    );
 }

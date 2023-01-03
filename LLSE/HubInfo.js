@@ -140,17 +140,26 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function setup(pl) {
-    const fm = mc.newCustomForm();
-    fm.setTitle("信息栏 - 设置");
-    fm.addStepSlider("位置", ["关闭", "计分板", "血条"], db.get(pl.xuid) ?? 0);
-    pl.sendForm(fm, (pl, args) => {
-        if (!args) return;
-        const old = db.get(pl.xuid);
-        if (args[0] == old) return;
-        db.set(pl.xuid, args[0]);
-        pl.sendToast(
-            "信息",
-            `信息栏${args[0] ? (old ? "状态修改成功" : "已启用") : "已禁用"}`
-        );
-    });
+    pl.sendForm(
+        mc
+            .newCustomForm()
+            .setTitle("信息栏 - 设置")
+            .addStepSlider(
+                "位置",
+                ["关闭", "计分板", "血条"],
+                db.get(pl.xuid) ?? 0
+            ),
+        (pl, args) => {
+            if (!args) return;
+            const old = db.get(pl.xuid);
+            if (args[0] == old) return;
+            db.set(pl.xuid, args[0]);
+            pl.sendToast(
+                "信息",
+                `信息栏${
+                    args[0] ? (old ? "状态修改成功" : "已启用") : "已禁用"
+                }`
+            );
+        }
+    );
 }

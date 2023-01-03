@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("DynamicMaxPlayers", "动态最多同时在线人数", [1, 0, 0]);
+ll.registerPlugin("DynamicMaxPlayers", "动态玩家数量上限", [1, 0, 0]);
 
 mc.listen("onPreJoin", () =>
     mc.setMaxPlayers(mc.getOnlinePlayers().length + 1)

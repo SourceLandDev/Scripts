@@ -67,8 +67,7 @@ function menu(pl, mu) {
     const buttons = menus.get("buttons", []);
     const back = menus.get("back", "");
     menus.close();
-    const fm = mc.newSimpleForm();
-    fm.setTitle(title);
+    const fm = mc.newSimpleForm().setTitle(title);
     if (contents.length > 0)
         fm.setContent(contents[Math.floor(Math.random() * contents.length)]);
     for (const bt of buttons) {

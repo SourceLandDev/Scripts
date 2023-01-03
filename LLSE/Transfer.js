@@ -58,25 +58,31 @@ function main(pl) {
         }
     if (plsnm.length <= 0)
         return pl.sendToast("经济", "§c转账失败：暂无可转账用户");
-    const fm = mc.newCustomForm();
-    fm.setTitle("转账菜单");
-    fm.addDropdown("目标", plsnm);
-    fm.addSlider("经验值", 1, xp);
-    fm.addLabel(`当前汇率：${rate * 100}％`);
-    pl.sendForm(fm, (pl, args) => {
-        if (!args) return;
-        const plto = mc.getPlayer(plxuid[args[0]]);
-        if (!plto)
-            return pl.sendToast("经济", `§c转账失败：${plsnm[args[0]]}已离线`);
-        if (args[1] > pl.getCurrentExperience())
-            return pl.sendToast("经济", "§c转账失败：余额不足");
-        pl.reduceExperience(args[1]);
-        const rlv = Math.round(args[1] * rate);
-        plto.reduceExperience(rlv);
-        pl.sendToast(
-            "经济",
-            `转账成功：向${plto.realName}转账${args[1]}经验值`
-        );
-        plto.sendToast("经济", `${pl.realName}向您转账${rlv}经验值`);
-    });
+    pl.sendForm(
+        mc
+            .newCustomForm()
+            .setTitle("转账菜单")
+            .addDropdown("目标", plsnm)
+            .addSlider("经验值", 1, xp)
+            .addLabel(`当前汇率：${rate * 100}％`),
+        (pl, args) => {
+            if (!args) return;
+            const plto = mc.getPlayer(plxuid[args[0]]);
+            if (!plto)
+                return pl.sendToast(
+                    "经济",
+                    `§c转账失败：${plsnm[args[0]]}已离线`
+                );
+            if (args[1] > pl.getCurrentExperience())
+                return pl.sendToast("经济", "§c转账失败：余额不足");
+            pl.reduceExperience(args[1]);
+            const rlv = Math.round(args[1] * rate);
+            plto.reduceExperience(rlv);
+            pl.sendToast(
+                "经济",
+                `转账成功：向${plto.realName}转账${args[1]}经验值`
+            );
+            plto.sendToast("经济", `${pl.realName}向您转账${rlv}经验值`);
+        }
+    );
 }

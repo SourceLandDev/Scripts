@@ -56,9 +56,10 @@ function main(pl) {
         }
     if (plsnm.length <= 0)
         return pl.sendToast("物流", "§c送达失败：暂无可送达用户");
-    const fm = mc.newCustomForm();
-    fm.setTitle("快递菜单");
-    fm.addDropdown("目标", plsnm);
+    const fm = mc
+        .newCustomForm()
+        .setTitle("快递菜单")
+        .addDropdown("目标", plsnm);
     const items = [];
     const inventoryItems = pl.getInventory().getAllItems();
     for (const item of inventoryItems) {
