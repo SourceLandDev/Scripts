@@ -91,5 +91,5 @@ mc.listen("onTick", () => {
     }
 });
 mc.listen("onChangeSprinting", (pl, isSprinting) => {
-    if (db.get(pl.xuid) && isSprinting) player.setSprinting(false);
+    if (db.get(pl.xuid) && isSprinting) pl.setSprinting(false);
 });
