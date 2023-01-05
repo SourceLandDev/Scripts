@@ -238,6 +238,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     destroy(pl, bl, isNull, it, unbreaking, lessDurability, maxChain);
 });
 function destroy(pl, bl, isNull, it, unbreaking, lessDurability, maxChain) {
+    if (!bl) return;
     let chainCount = 0;
     for (
         let i = 0, j = 1;

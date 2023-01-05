@@ -103,7 +103,7 @@ setInterval(() => {
                 continue;
             case 1:
                 pl.setSidebar(
-                    `${pl.realName}·§${
+                    `${pl.realName}×§${
                         "1234567890abcdefglmno"[Math.floor(Math.random() * 21)]
                     }${serverName}`,
                     list
@@ -111,7 +111,7 @@ setInterval(() => {
                 break;
             case 2:
                 list[
-                    `${pl.realName}·§${
+                    `${pl.realName}×§${
                         "1234567890abcdefglmno"[Math.floor(Math.random() * 21)]
                     }${serverName}`
                 ] = 0;

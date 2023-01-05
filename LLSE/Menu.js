@@ -36,6 +36,7 @@ ll.registerPlugin("Menu", "菜单", [1, 0, 0]);
 const config = new JsonConfigFile("plugins/Menu/config.json");
 const itemType = config.init("itemType", {});
 const commands = config.init("commands", {});
+const allowUnsafeBlocks = config.init("allowUnsafeBlocks", false);
 config.close();
 mc.listen("onUseItem", (pl, it) => {
     if (it.type in itemType) menu(pl, itemType[it.type]);
@@ -78,6 +79,12 @@ function menu(pl, mu) {
         if (arg == null) {
             if (!back) return;
             return menu(pl, back);
+        }
+        if (buttons[arg].code) {
+            if (allowUnsafeBlocks) {
+                if (!buttons[arg].code.opOnly || pl.isOP())
+                    eval(buttons[arg].code.script);
+            } else log(`您启用了安全模式，菜单${mu}内包含的代码将不会被运行`);
         }
         if (buttons[arg].run)
             for (const cmd of buttons[arg].run) {
