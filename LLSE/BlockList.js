@@ -100,8 +100,8 @@ mc.listen("onPreJoin", (pl) => {
         if (
             !blData.xuids.includes(pl.xuid) &&
             !blData.clientIds.includes(device.clientId) &&
-            (blData.xuid.length > 0 ||
-                blData.clientId.length > 0 ||
+            (blData.xuids.length > 0 ||
+                blData.clientIds.length > 0 ||
                 !blData.names.includes(pl.realName))
         )
             continue;
