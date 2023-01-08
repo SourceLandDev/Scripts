@@ -66,9 +66,9 @@ mc.listen("onServerStarted", () => {
                 const xuid = pl ? pl.xuid : data.name2xuid(res.player);
                 db.push({
                     names: [res.player],
-                    xuids: xuid ? [] : [xuid],
+                    xuids: xuid ? [xuid] : [],
                     message: res.message ?? "",
-                    clientIds: pl ? [] : [pl.getDevice().clientId],
+                    clientIds: pl ? [pl.getDevice().clientId] : [],
                 });
                 File.writeTo("blocklist.json", data.toJson(db));
                 return out.success("封禁成功");
@@ -99,7 +99,10 @@ mc.listen("onPreJoin", (pl) => {
     for (const blData of db) {
         if (
             !blData.xuids.includes(pl.xuid) &&
-            !blData.clientIds.includes(device.clientId)
+            !blData.clientIds.includes(device.clientId) &&
+            (blData.xuid.length > 0 ||
+                blData.clientId.length > 0 ||
+                !blData.names.includes(pl.realName))
         )
             continue;
         pl.kick(
