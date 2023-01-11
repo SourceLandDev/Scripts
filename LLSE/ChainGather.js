@@ -251,16 +251,24 @@ function destroy(pl, bl, isNull, it, unbreaking, lessDurability, maxChain) {
         if (chainCount >= maxChain || (!isNull && it.isNull())) continue;
         const nextBlock = mc.getBlock(x, y, z, bl.pos.dimid);
         if (
-            !ll.hasExported("landEX_GetHasPLandPermbyPos") ||
-            (ll.hasExported("landEX_GetHasPLandPermbyPos") &&
-                !ll.import("landEX_GetHasPLandPermbyPos")(
-                    x,
-                    y,
-                    z,
-                    bl.pos.dimid
-                ) &&
-                nextBlock.type == bl.type &&
-                nextBlock.destroy(true))
+            (!ll.hasExported("landEX_GetHasPLandPermbyPos") ||
+                (ll.hasExported("landEX_GetHasPLandPermbyPos") &&
+                    !ll.import("landEX_GetHasPLandPermbyPos")(
+                        x,
+                        y,
+                        z,
+                        bl.pos.dimid
+                    ))) &&
+            (!ll.hasExported("ILAPI_PosGetLand") ||
+                (ll.hasExported("ILAPI_PosGetLand") &&
+                    ll.import("ILAPI_PosGetLand")({
+                        x: x,
+                        y: y,
+                        z: z,
+                        dimid: bl.pos.dimid,
+                    }) == "-1")) &&
+            nextBlock.type == bl.type &&
+            nextBlock.destroy(true)
         ) {
             chainCount++;
             if (Math.floor(Math.random() * 99) < unbreaking && !isNull) {
