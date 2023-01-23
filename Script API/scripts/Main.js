@@ -1,3 +1,3 @@
 "use strict";
-import "AntiCreeper.js";
+import "AntiExplosion.js";
 import "MessageFormat.js";

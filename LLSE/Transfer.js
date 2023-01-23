@@ -77,7 +77,7 @@ function main(pl) {
                 return pl.sendToast("经济", "§c转账失败：余额不足");
             pl.reduceExperience(args[1]);
             const rlv = Math.round(args[1] * rate);
-            plto.reduceExperience(rlv);
+            plto.addExperience(rlv);
             pl.sendToast(
                 "经济",
                 `转账成功：向${plto.realName}转账${args[1]}经验值`

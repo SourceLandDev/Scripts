@@ -84,7 +84,7 @@ function menu(pl, mu) {
             if (allowUnsafeBlocks) {
                 if (!buttons[arg].code.opOnly || pl.isOP())
                     eval(buttons[arg].code.script);
-            } else log(`您启用了安全模式，菜单${mu}内包含的代码将不会被运行`);
+            } else fastLog(`您启用了安全模式，菜单${mu}内包含的代码将不会被运行`);
         }
         if (buttons[arg].run)
             for (const cmd of buttons[arg].run) {
