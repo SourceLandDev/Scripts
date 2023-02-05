@@ -86,8 +86,8 @@ if (!(db.get("items") && db.get("offers") && keys.length > 0)) {
         };
         for (const item of Object.values(shop.items)) {
             items[item.guid] = {
-                snbt: item.snbt,
-                count: Number(NBT.parseSNBT(item.snbt).getData("Count")),
+                binnbt: item.binnbt,
+                count: Number(NBT.parseBinaryNBT(item.binnbt).getData("Count")),
                 price: Number(item.price),
                 seller: key,
             };
@@ -219,8 +219,8 @@ mc.listen("onJoin", (pl) => {
         return;
     }
     for (const ut of sellers[pl.xuid].unprocessedTransactions) {
-        if (ut.snbt) {
-            const item = mc.newItem(NBT.parseSNBT(ut.snbt));
+        if (ut.binnbt) {
+            const item = mc.newItem(NBT.parseBinaryNBT(ut.binnbt));
             pl.giveItem(item, ut.count);
             pl.sendToast(
                 "集市",
@@ -289,7 +289,7 @@ function browseItems(pl) {
     const realItems = [];
     for (const item of itemsValue) {
         if (item.seller == pl.xuid) continue;
-        const newItem = mc.newItem(NBT.parseSNBT(item.snbt));
+        const newItem = mc.newItem(NBT.parseBinaryNBT(item.binnbt));
         fm.addButton(
             `${newItem.name}（${newItem.type} ${newItem.aux}）*${item.count}\n${
                 item.price
@@ -345,7 +345,7 @@ function itemsManagement(pl) {
     const sellers = db.get("sellers") ?? {};
     const items = db.get("items") ?? {};
     for (const uuid of sellers[pl.xuid].items) {
-        const newItem = mc.newItem(NBT.parseSNBT(items[uuid].snbt));
+        const newItem = mc.newItem(NBT.parseBinaryNBT(items[uuid].binnbt));
         fm.addButton(
             `${newItem.name}（${newItem.type} ${newItem.aux}）*${items[uuid].count}\n${items[uuid].price}${eco.name}/个`
         );
@@ -402,13 +402,13 @@ function itemBuy(pl, uuid) {
     if (items[uuid].count < canBuyMax) {
         canBuyMax = items[uuid].count;
     }
-    const itemNBT = NBT.parseSNBT(items[uuid].snbt);
+    const itemNBT = NBT.parseBinaryNBT(items[uuid].binnbt);
     const fm = mc
         .newCustomForm()
         .setTitle("购买物品")
         .addLabel(`类型：${itemNBT.getTag("Name")}`)
         .addLabel(`单价：${items[uuid].price}`)
-        .addLabel(`NBT：${items[uuid].snbt}`);
+        .addLabel(`NBT：${items[uuid].binnbt}`);
     const canBuyMin = 1 / items[uuid].price;
     if (canBuyMin < canBuyMax)
         fm.addSlider("数量", Math.round(canBuyMin), Math.round(canBuyMax));
@@ -563,7 +563,7 @@ function offerProcess(pl, uuid) {
             );
         } else
             sellers[seller].unprocessedTransactions.push({
-                snbt: nbt.toSNBT(),
+                binnbt: nbt.toBinaryNBT(),
                 count: num,
                 serviceCharge: serviceCharge,
             });
@@ -640,7 +640,7 @@ function itemUpload(pl, args = [0, "", 1]) {
         const items = db.get("items") ?? {};
         const uuid = system.randomGuid();
         items[uuid] = {
-            snbt: itemData[args[0]].item.getNbt().toSNBT(),
+            binnbt: itemData[args[0]].item.getNbt().toBinaryNBT(),
             count: num,
             price: Number(args[1]),
             seller: pl.xuid,
@@ -762,7 +762,7 @@ function itemTakedown(pl, uuid) {
                 1
             );
             pl.giveItem(
-                mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt)),
+                mc.newItem(NBT.parseBinaryNBT(nowItems[uuid].binnbt)),
                 nowItems[uuid].count
             );
             delete nowItems[uuid];

@@ -37,23 +37,13 @@ const config = new JsonConfigFile("plugins/HubInfo/config.json");
 const serverName = config.init("serverName", "");
 config.close();
 const db = new KVDatabase("plugins/HubInfo/data");
-let ticks = [];
-let realTPMS = 0;
-let newTick = Date.now();
-mc.listen("onTick", () => {
-    const oldTick = newTick;
-    newTick = Date.now();
-    ticks.push(newTick - oldTick);
-});
 setInterval(() => {
-    let tickPlus = 0;
-    for (const tick of ticks) tickPlus += tick;
-    realTPMS = tickPlus / ticks.length;
-    ticks = [];
-    const tps = 1000 / realTPMS;
-    if (Math.round(tps) < 16) fastLog(`当前TPS：${tps}`);
+    const tps = ll.import("TPSAPI", "GetRealTPS")();
+    const workingSet = ll.import("InfoAPI", "GetWorkingSet")();
+    if (tps < 14) fastLog(`当前TPS：${tps}`);
     for (const pl of mc.getOnlinePlayers()) {
         pl.removeSidebar();
+        if (!db.get(pl.xuid)) continue;
         const dv = pl.getDevice();
         const list = {};
         list[`§${dv.lastPacketLoss > 1 ? "c" : "a"}丢包`] = Math.round(
@@ -86,8 +76,8 @@ setInterval(() => {
                     ? "4"
                     : 0
             }负载`
-        ] = Math.abs(Math.floor(100 - tps / 0.2));
-        if (!db.get(pl.xuid)) continue;
+        ] = 100 - tps * 5;
+        list["内存"] = workingSet / 1024 / 1024;
         pl.setSidebar(" ", list);
     }
 }, 1000);
