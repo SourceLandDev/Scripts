@@ -67,52 +67,7 @@ const eco = (() => {
 })();
 const serviceCharge = config.init("serviceCharge", 0.02);
 config.close();
-let db = new KVDatabase("plugins/Bazaar/data");
-// For compatibility
-const keys = db.listKey();
-if (!(db.get("items") && db.get("offers") && keys.length > 0)) {
-    db.close();
-    File.rename("plugins/Bazaar/data", "plugins/Bazaar/data_v1");
-    db = new KVDatabase("plugins/Bazaar/data");
-    const olddb = new KVDatabase("plugins/Bazaar/data_v1");
-    const items = {};
-    const sellers = {};
-    for (const key of keys) {
-        const shop = olddb.get(key);
-        const newShop = {
-            items: [],
-            offers: [],
-            unprocessedTransactions: [],
-        };
-        for (const item of Object.values(shop.items)) {
-            items[item.guid] = {
-                binnbt: item.binnbt,
-                count: Number(NBT.parseBinaryNBT(item.binnbt).getData("Count")),
-                price: Number(item.price),
-                seller: key,
-            };
-            newShop.items.push(item.guid);
-        }
-        for (const ut of shop.pending) {
-            newShop.unprocessedTransactions.push({
-                price: Number(ut.item.price),
-                count: Number(ut.count),
-                serviceCharge: Number(ut.serviceCharge),
-            });
-        }
-        if (
-            newShop.items.length <= 0 &&
-            newShop.offers.length <= 0 &&
-            newShop.unprocessedTransactions.length <= 0
-        )
-            continue;
-        sellers[key] = newShop;
-    }
-    olddb.close();
-    db.set("items", items);
-    db.set("offers", {});
-    db.set("sellers", sellers);
-} // For compatibility
+const db = new KVDatabase("plugins/Bazaar/data");
 const ench = [
     "保护",
     "火焰保护",
@@ -219,8 +174,14 @@ mc.listen("onJoin", (pl) => {
         return;
     }
     for (const ut of sellers[pl.xuid].unprocessedTransactions) {
-        if (ut.binnbt) {
-            const item = mc.newItem(NBT.parseBinaryNBT(ut.binnbt));
+        if (ut.item) {
+            const nbtData = {
+                Name: new NbtString(ut.item.name),
+                Damage: new NbtShort(ut.item.damage),
+                Count: new NbtByte(1),
+            };
+            if (ut.item.ench) nbtData.ench = new NbtCompound(ut.item.ench);
+            const item = mc.newItem(new NbtCompound(nbtData));
             pl.giveItem(item, ut.count);
             pl.sendToast(
                 "集市",
@@ -321,8 +282,7 @@ function browseOffers(pl) {
             Count: new NbtByte(1),
         };
         if (offer.ench) nbtData.ench = new NbtCompound(offer.ench);
-        const nbt = new NbtCompound(nbtData);
-        const item = mc.newItem(nbt);
+        const item = mc.newItem(new NbtCompound(nbtData));
         fm.addButton(
             `${item.name}（${item.type} ${item.aux}）*${offer.count}\n${
                 offer.price
@@ -372,8 +332,7 @@ function offersManagement(pl) {
         };
         if (offers[uuid].ench)
             nbtData.ench = new NbtCompound(offers[uuid].ench);
-        const nbt = new NbtCompound(nbtData);
-        const item = mc.newItem(nbt);
+        const item = mc.newItem(new NbtCompound(nbtData));
         fm.addButton(
             `${item.name}（${item.type} ${item.aux}）*${offers[uuid].count}\n${offers[uuid].price}${eco.name}/个`
         );
@@ -408,7 +367,7 @@ function itemBuy(pl, uuid) {
         .setTitle("购买物品")
         .addLabel(`类型：${itemNBT.getTag("Name")}`)
         .addLabel(`单价：${items[uuid].price}`)
-        .addLabel(`NBT：${items[uuid].binnbt}`);
+        .addLabel(`NBT：${itemNBT.toSNBT()}`);
     const canBuyMin = 1 / items[uuid].price;
     if (canBuyMin < canBuyMax)
         fm.addSlider("数量", Math.round(canBuyMin), Math.round(canBuyMax));
@@ -452,8 +411,7 @@ function itemBuy(pl, uuid) {
             );
         } else nowItems[uuid].count -= num;
         eco.reduce(pl, cost);
-        const newItem = mc.newItem(itemNBT);
-        pl.giveItem(newItem, num);
+        pl.giveItem(mc.newItem(itemNBT), num);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
             const get = Math.round(cost * (1 - serviceCharge));
@@ -486,8 +444,7 @@ function offerProcess(pl, uuid) {
         Count: new NbtByte(1),
     };
     if (offers[uuid].ench) nbtData.ench = new NbtCompound(offers[uuid].ench);
-    const nbt = new NbtCompound(nbtData);
-    const item = mc.newItem(nbt);
+    const item = mc.newItem(new NbtCompound(nbtData));
     let itemCount = 0;
     for (const invItem of pl.getInventory().getAllItems()) {
         if (invItem.isNull()) continue;
@@ -563,7 +520,11 @@ function offerProcess(pl, uuid) {
             );
         } else
             sellers[seller].unprocessedTransactions.push({
-                binnbt: nbt.toBinaryNBT(),
+                item: {
+                    name: offers[uuid].type,
+                    damage: offers[uuid].data,
+                    ench: offers[uuid].ench,
+                },
                 count: num,
                 serviceCharge: serviceCharge,
             });
