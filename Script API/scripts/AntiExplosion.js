@@ -6,5 +6,5 @@ mc.world.events.beforeExplosion.subscribe((arg) => {
         arg.source.typeId == "minecraft:creeper" ||
         arg.source.typeId == "minecraft:fireball"
     )
-        arg.impactedBlocks = [];
+        arg.setImpactedBlocks({ x: 0, y: 0, z: 0 });
 });

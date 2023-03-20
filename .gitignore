@@ -1,2 +1,5 @@
 **/build/*
 build.ps1
+Script API/node_modules/*
+Script API/package-lock.json
+Script API/package.json

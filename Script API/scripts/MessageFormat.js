@@ -8,7 +8,7 @@ mc.world.events.beforeChat.subscribe((arg) => {
     hours = hours + 8 > 24 ? hours - 16 : hours + 8;
     const minutes = time.getMinutes();
     const timeStr = `${hours}:${minutes < 10 ? 0 : ""}${minutes}`;
-    mc.world.say(`${timeStr} ${arg.sender.name}：${arg.message}`);
+    mc.world.sendMessage(`${timeStr} ${arg.sender.name}：${arg.message}`);
     arg.sender.nameTag = `${timeStr} ${arg.message.replace("\n", " ")}\n${
         arg.sender.nameTag
     }`;
