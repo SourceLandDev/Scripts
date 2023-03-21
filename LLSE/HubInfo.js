@@ -38,8 +38,8 @@ const serverName = config.init("serverName", "");
 config.close();
 const db = new KVDatabase("plugins/HubInfo/data");
 setInterval(() => {
-    const tps = ll.import("TPSAPI", "GetRealTPS")();
-    const workingSet = ll.import("InfoAPI", "GetWorkingSet")();
+    const tps = ll.imports("TPSAPI", "GetRealTPS")();
+    const workingSet = ll.imports("InfoAPI", "GetWorkingSet")();
     if (tps < 14) fastLog(`当前TPS：${tps}`);
     for (const pl of mc.getOnlinePlayers()) {
         pl.removeSidebar();

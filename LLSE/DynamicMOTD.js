@@ -48,6 +48,6 @@ setInterval(() => {
 function process(str) {
     str = str.replace(/%AllPlayers%/g, data.getAllPlayerInfo().length);
     if (ll.hasExported("MostPlayers", "Get"))
-        str = str.replace(/%MostPlayers%/g, ll.import("MostPlayers", "Get")());
+        str = str.replace(/%MostPlayers%/g, ll.imports("MostPlayers", "Get")());
     return str;
 }

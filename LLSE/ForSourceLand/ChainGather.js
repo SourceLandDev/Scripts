@@ -253,7 +253,7 @@ function destroy(pl, bl, isNull, it, unbreaking, lessDurability, maxChain) {
         if (
             (!ll.hasExported("landEX_GetHasPLandPermbyPos") ||
                 (ll.hasExported("landEX_GetHasPLandPermbyPos") &&
-                    !ll.import("landEX_GetHasPLandPermbyPos")(
+                    !ll.imports("landEX_GetHasPLandPermbyPos")(
                         x,
                         y,
                         z,
@@ -261,7 +261,7 @@ function destroy(pl, bl, isNull, it, unbreaking, lessDurability, maxChain) {
                     ))) &&
             (!ll.hasExported("ILAPI_PosGetLand") ||
                 (ll.hasExported("ILAPI_PosGetLand") &&
-                    ll.import("ILAPI_PosGetLand")({
+                    ll.imports("ILAPI_PosGetLand")({
                         x: x,
                         y: y,
                         z: z,

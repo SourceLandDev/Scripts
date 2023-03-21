@@ -39,7 +39,7 @@ config.close();
 const db = new KVDatabase("plugins/SLULA/data");
 mc.listen("onJoin", (pl) => {
     if (db.get(pl.xuid)) {
-        if (server) ll.import("BlockIsland", "sendInit")(pl.xuid);
+        if (server) ll.imports("BlockIsland", "sendInit")(pl.xuid);
         return;
     }
     pl.sendModalForm(
@@ -60,7 +60,7 @@ mc.listen("onJoin", (pl) => {
                     `欢迎${pl.realName}加入了我们！`
                 );
             }
-            if (server) ll.import("BlockIsland", "sendInit")(pl.xuid);
+            if (server) ll.imports("BlockIsland", "sendInit")(pl.xuid);
         }
     );
 });

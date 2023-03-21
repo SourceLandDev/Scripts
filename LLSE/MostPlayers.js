@@ -38,4 +38,4 @@ mc.listen("onJoin", () => {
     const plcount = mc.getOnlinePlayers().length;
     if ((db.get("Count") ?? 0) < plcount) db.set("Count", plcount);
 });
-ll.export(() => db.get("Count") ?? 0, "MostPlayers", "Get");
+ll.exports(() => db.get("Count") ?? 0, "MostPlayers", "Get");
