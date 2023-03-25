@@ -13,8 +13,7 @@ mc.world.events.beforeChat.subscribe((arg) => {
         arg.sender.nameTag
     }`;
     const name = arg.sender.name;
-    const id = mc.system.runSchedule(() => {
-        mc.system.clearRunSchedule(id);
+    mc.system.runTimeout(() => {
         const pls = mc.world.getPlayers({ name: name });
         for (const pl of pls) {
             pl.nameTag =
