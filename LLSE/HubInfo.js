@@ -1,7 +1,7 @@
 /*
 English:
     HubInfo
-    Copyright (C) 2022  StarsDream00 starsdream00@icloud.com
+    Copyright (C) 2023  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@ English:
 
 中文：
     信息栏
-    版权所有 © 2022  星梦喵吖 starsdream00@icloud.com
+    版权所有 © 2023  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
 
@@ -40,7 +40,6 @@ const db = new KVDatabase("plugins/HubInfo/data");
 setInterval(() => {
     const tps = ll.imports("TPSAPI", "GetRealTPS")();
     const workingSet = ll.imports("InfoAPI", "GetWorkingSet")();
-    if (tps < 14) fastLog(`当前TPS：${tps}`);
     for (const pl of mc.getOnlinePlayers()) {
         pl.removeSidebar();
         if (!db.get(pl.xuid)) continue;

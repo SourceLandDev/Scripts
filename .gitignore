@@ -1,5 +1,3 @@
-build
-build.ps1
 node_modules
 package.json
 package-lock.json

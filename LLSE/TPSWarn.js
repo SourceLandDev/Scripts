@@ -1,6 +1,6 @@
 /*
 English:
-    AntiExplosion
+    TPSWarn
     Copyright (C) 2023  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    阻止自然爆炸
+    卡顿警告
     版权所有 © 2023  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,12 +31,9 @@ English:
 */
 
 "use strict";
-import * as mc from "@minecraft/server";
+ll.registerPlugin("HubInfo", "信息栏", [1, 0, 0]);
 
-mc.world.events.beforeExplosion.subscribe((arg) => {
-    if (
-        arg.source.typeId == "minecraft:creeper" ||
-        arg.source.typeId == "minecraft:fireball"
-    )
-        arg.setImpactedBlocks([]);
-});
+setInterval(() => {
+    const tps = ll.imports("TPSAPI", "GetRealTPS")();
+    if (tps < 14) fastLog(`当前TPS：${tps}`);
+}, 1000);
