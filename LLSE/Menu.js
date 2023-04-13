@@ -34,21 +34,21 @@ English:
 ll.registerPlugin("Menu", "菜单", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/Menu/config.json");
-const itemType = config.init("itemType", {});
+const menuItem = config.init("menuItem", {});
 const commands = config.init("commands", {});
 config.close();
 mc.listen("onUseItem", (pl, it) => {
-    if (it.type in itemType) menu(pl, itemType[it.type]);
+    if (it.type in menuItem) menu(pl, menuItem[it.type]);
 });
 mc.listen("onServerStarted", () => {
     for (const command in commands) {
         const menus = new JsonConfigFile(
-            `plugins/Menu/menus/${command}.json`,
+            `plugins/Menu/menus/${commands[command]}.json`,
             data.toJson({}, 4)
         );
         const title = menus.get("title", "菜单。");
         menus.close();
-        const cmd = mc.newCommand(commands[command], title, PermType.Any);
+        const cmd = mc.newCommand(command, title, PermType.Any);
         cmd.overload();
         cmd.setCallback((_cmd, ori, out, _res) => {
             if (!ori.player) return out.error("commands.generic.noTargetMatch");
