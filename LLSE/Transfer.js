@@ -36,6 +36,36 @@ ll.registerPlugin("Transfer", "转账", [1, 0, 0]);
 const config = new JsonConfigFile("plugins/Transfer/config.json");
 const command = config.init("command", "transfer");
 const rate = config.init("rate", 0.98);
+const currencyType = config.init("currencyType", "llmoney");
+const currencyName = config.init("currencyName", "元");
+const eco = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
+                name: currencyName,
+            };
+        case "scoreboard":
+            const scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: (pl) => pl.getScore(scoreboard),
+                name: currencyName,
+            };
+        case "currexp":
+            return {
+                add: (pl, money) => pl.addExperience(money),
+                reduce: (pl, money) => pl.reduceExperience(money),
+                get: (pl) => pl.getCurrentExperience(),
+                name: "经验值",
+            };
+        default:
+            throw "配置项异常！";
+    }
+})();
 config.close();
 mc.listen("onServerStarted", () => {
     const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);
@@ -47,23 +77,23 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
-    const xp = pl.getCurrentExperience();
-    if (xp <= 0) return pl.sendToast("经济", "§c转账失败：余额不足");
-    const plsnm = [];
+    const money = eco.get(pl);
+    if (money <= 0) return pl.sendToast("经济", "§c转账失败：余额不足");
+    const plnms = [];
     const plxuid = [];
     for (const pl1 of mc.getOnlinePlayers())
         if (pl1.xuid != pl.xuid) {
-            plsnm.push(pl1.realName);
+            plnms.push(pl1.realName);
             plxuid.push(pl1.xuid);
         }
-    if (plsnm.length <= 0)
+    if (plnms.length <= 0)
         return pl.sendToast("经济", "§c转账失败：暂无可转账用户");
     pl.sendForm(
         mc
             .newCustomForm()
             .setTitle("转账菜单")
-            .addDropdown("目标", plsnm)
-            .addSlider("经验值", 1, xp)
+            .addDropdown("目标", plnms)
+            .addSlider("数额", 1, money)
             .addLabel(`当前汇率：${rate * 100}％`),
         (pl, args) => {
             if (!args) return;
@@ -71,18 +101,18 @@ function main(pl) {
             if (!plto)
                 return pl.sendToast(
                     "经济",
-                    `§c转账失败：${plsnm[args[0]]}已离线`
+                    `§c转账失败：${plnms[args[0]]}已离线`
                 );
-            if (args[1] > pl.getCurrentExperience())
+            if (args[1] > eco.get(pl))
                 return pl.sendToast("经济", "§c转账失败：余额不足");
-            pl.reduceExperience(args[1]);
+            eco.reduce(pl, args[1]);
             const rlv = Math.round(args[1] * rate);
-            plto.addExperience(rlv);
+            eco.add(plto, rlv);
             pl.sendToast(
                 "经济",
-                `转账成功：向${plto.realName}转账${args[1]}经验值`
+                `转账成功：向${plto.realName}转账${args[1]}${eco.name}`
             );
-            plto.sendToast("经济", `${pl.realName}向您转账${rlv}经验值`);
+            plto.sendToast("经济", `${pl.realName}向您转账${rlv}${eco.name}`);
         }
     );
 }

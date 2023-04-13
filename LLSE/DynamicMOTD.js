@@ -35,10 +35,7 @@ ll.registerPlugin("DynamicMOTD", "动态MOTD", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/DynamicMOTD/config.json");
 const interval = config.init("interval", 5);
-const motd = config.init("motd", [
-    "This is a dynamic MOTD",
-    "Powered by DynamicMOTD",
-]);
+const motd = config.init("motd", []);
 config.close();
 let index = 0;
 setInterval(() => {

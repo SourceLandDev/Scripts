@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    快递
+    物流
     版权所有 © 2023  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,14 +31,44 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Express", "快递", [1, 0, 0]);
+ll.registerPlugin("Express", "物流", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/Express/config.json");
 const command = config.init("command", "express");
-const serviceCharge = config.init("serviceCharge", [0, 3]);
+const serviceCharge = config.init("serviceCharge", { min: 0, max: 3 });
+const currencyType = config.init("currencyType", "llmoney");
+const currencyName = config.init("currencyName", "元");
+const eco = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
+                name: currencyName,
+            };
+        case "scoreboard":
+            const scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: (pl) => pl.getScore(scoreboard),
+                name: currencyName,
+            };
+        case "xplevel":
+            return {
+                add: (pl, money) => pl.addLevel(money),
+                reduce: (pl, money) => pl.reduceLevel(money),
+                get: (pl) => pl.getLevel(),
+                name: "级经验",
+            };
+        default:
+            throw "配置项异常！";
+    }
+})();
 config.close();
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开快递菜单。", PermType.Any);
+    const cmd = mc.newCommand(command, "打开物流菜单。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (!ori.player) return out.error("commands.generic.noTargetMatch");
@@ -47,19 +77,19 @@ mc.listen("onServerStarted", () => {
     cmd.setup();
 });
 function main(pl) {
-    const plsnm = [];
+    const plnms = [];
     const plsxuid = [];
     for (const plget of mc.getOnlinePlayers())
         if (plget.xuid != pl.xuid) {
-            plsnm.push(plget.realName);
+            plnms.push(plget.realName);
             plsxuid.push(plget.xuid);
         }
-    if (plsnm.length <= 0)
+    if (plnms.length <= 0)
         return pl.sendToast("物流", "§c送达失败：暂无可送达用户");
     const fm = mc
         .newCustomForm()
-        .setTitle("快递菜单")
-        .addDropdown("目标", plsnm);
+        .setTitle("物流菜单")
+        .addDropdown("目标", plnms);
     const items = [];
     const inventoryItems = pl.getInventory().getAllItems();
     for (const item of inventoryItems) {
@@ -76,23 +106,23 @@ function main(pl) {
     if (items.length <= 0) return pl.sendToast("物流", "§c送达失败：背包为空");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
-        const level = pl.getLevel();
+        const money = eco.get(pl);
         const condition = Math.floor(
-            serviceCharge[1] + serviceCharge[1] * level * 0.02
+            serviceCharge.max + serviceCharge.max * money * 0.02
         );
-        if (level < condition) {
+        if (money < condition) {
             pl.sendToast(
                 "物流",
-                `§c送达失败：余额不足（需要${condition}级经验）`
+                `§c送达失败：余额不足（需要${condition}${eco.name}）`
             );
             return main(pl);
         }
         const pl1 = mc.getPlayer(plsxuid[args[0]]);
         if (!pl1)
-            return pl.sendToast("物流", `§c送达失败：${plsnm[args[0]]}已离线`);
+            return pl.sendToast("物流", `§c送达失败：${plnms[args[0]]}已离线`);
         args.shift();
         const reduce = Math.round(
-            Math.random() * (serviceCharge[0] - condition) + condition
+            Math.random() * (serviceCharge.min - condition) + condition
         );
         const sendItems = [];
         for (const index in args) {
@@ -119,8 +149,10 @@ function main(pl) {
             sendItems.push({ name: item.name, count: args[index] });
         }
         if (sendItems.length <= 0) return;
-        pl.reduceLevel(reduce);
-        pl.tell(`向${pl1.realName}发送了以下物品（花费${reduce}级经验）：`);
+        eco.reduce(pl, reduce);
+        pl.tell(
+            `向${pl1.realName}发送了以下物品（花费${reduce}${eco.name}）：`
+        );
         pl1.tell(`${pl.realName}向您发送了以下物品：`);
         for (const item of sendItems) {
             pl.tell(`${item.name}§r*${item.count}`);

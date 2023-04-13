@@ -35,6 +35,7 @@ ll.registerPlugin("Bazaar", "集市", [2, 0, 5]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
+const serviceCharge = config.init("serviceCharge", 0.02);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -65,7 +66,6 @@ const eco = (() => {
             throw "配置项异常！";
     }
 })();
-const serviceCharge = config.init("serviceCharge", 0.02);
 config.close();
 const db = new KVDatabase("plugins/Bazaar/data");
 const ench = [

@@ -35,6 +35,36 @@ ll.registerPlugin("RedPacket", "红包", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/RedPacket/config.json");
 const command = config.init("command", "redpacket");
+const currencyType = config.init("currencyType", "llmoney");
+const currencyName = config.init("currencyName", "元");
+const eco = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
+                name: currencyName,
+            };
+        case "scoreboard":
+            const scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: (pl) => pl.getScore(scoreboard),
+                name: currencyName,
+            };
+        case "currexp":
+            return {
+                add: (pl, money) => pl.addExperience(money),
+                reduce: (pl, money) => pl.reduceExperience(money),
+                get: (pl) => pl.getCurrentExperience(),
+                name: "经验值",
+            };
+        default:
+            throw "配置项异常！";
+    }
+})();
 config.close();
 const db = new KVDatabase("plugins/RedPacket/data");
 mc.listen("onServerStarted", () => {
@@ -55,9 +85,9 @@ function main(pl) {
             `${
                 rpdata.count > Object.keys(rpdata.recipient).length
                     ? pl.xuid in rpdata.recipient
-                        ? "（已领过）"
-                        : ""
-                    : "（已领完）"
+                        ? "§e（已领过）"
+                        : "§a"
+                    : "§c（已领完）"
             }${
                 rpdata.msg ? `信息：${rpdata.msg}` : `发送时间：${rpdata.time}`
             }\n发送者：${data.xuid2name(rpdata.sender)}`
@@ -84,17 +114,17 @@ function redpacket(pl, key) {
     ) {
         rpdata.recipient[pl.xuid] = { time: system.getTimeStr() };
         db.set(key, rpdata);
-        pl.addExperience(rpdata.level);
+        eco.add(pl, rpdata.level);
         pl.sendToast(
             "经济",
             `领取${data.xuid2name(rpdata.sender)}的红包${rpdata.msg}成功：获得${
                 rpdata.level
-            }经验值`
+            }${eco.name}`
         );
     }
     let text = `发送者：${data.xuid2name(rpdata.sender)}\n发送时间：${
         rpdata.time
-    }\n单个数额：${rpdata.level}经验\n数量：${
+    }\n单个数额：${rpdata.level}${eco.name}\n数量：${
         Object.keys(rpdata.recipient).length
     }/${rpdata.count}\n已领取用户：\n`;
     for (const getter in rpdata.recipient)
@@ -108,20 +138,20 @@ function redpacket(pl, key) {
     );
 }
 function send(pl) {
-    const xp = pl.getCurrentExperience();
+    const money = eco.get(pl);
     pl.sendForm(
         mc
             .newCustomForm()
             .setTitle("发送红包")
             .addInput("信息", "字符串")
-            .addSlider("发送数量", 1, xp)
-            .addSlider("单个数额", 1, xp),
+            .addSlider("发送数量", 1, money)
+            .addSlider("单个数额", 1, money),
         (pl, args) => {
             if (!args) return main(pl);
             const count = args[1] * args[2];
-            if (count > pl.getCurrentExperience())
+            if (count > eco.get(pl))
                 return pl.sendToast("经济", "§c红包发送失败：余额不足");
-            pl.reduceExperience(count);
+            eco.reduce(pl, count);
             const guid = system.randomGuid();
             db.set(guid, {
                 sender: pl.xuid,
