@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Menu", "菜单", [1, 0, 0]);
+ll.registerPlugin("Menu", "菜单", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Menu/config.json");
 const menuItem = config.init("menuItem", {});
@@ -52,12 +52,12 @@ mc.listen("onServerStarted", () => {
         cmd.overload();
         cmd.setCallback((_cmd, ori, out, _res) => {
             if (!ori.player) return out.error("commands.generic.noTargetMatch");
-            menu(ori.player, command);
+            menu(ori.player, commands[command]);
         });
         cmd.setup();
     }
 });
-function menu(pl, mu) {
+function menu(pl, mu, link) {
     const menus = new JsonConfigFile(
         `plugins/Menu/menus/${mu}.json`,
         data.toJson({}, 4)
@@ -65,32 +65,24 @@ function menu(pl, mu) {
     const title = menus.get("title", "");
     const contents = menus.get("contents", []);
     const buttons = menus.get("buttons", []);
-    const back = menus.get("back", "");
     menus.close();
     const fm = mc.newSimpleForm().setTitle(title);
     if (contents.length > 0)
         fm.setContent(contents[Math.floor(Math.random() * contents.length)]);
-    for (const bt of buttons) {
-        if (bt.opOnly && !pl.isOP()) continue;
-        fm.addButton(bt.text, bt.image ? bt.image : "");
-    }
+    for (const bt of buttons) fm.addButton(bt.text, bt.image ? bt.image : "");
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) {
-            if (!back) return;
-            return menu(pl, back);
+            if (!link || link.length < 1) return;
+            const pre = link.pop();
+            return menu(pl, pre, link);
         }
         if (buttons[arg].run)
-            for (const cmd of buttons[arg].run) {
-                if (cmd.opOnly && !pl.isOP()) continue;
+            for (const cmd of buttons[arg].run)
                 mc.runcmdEx(cmd.command.replace(/@s/, `"${pl.realName}"`));
-            }
         if (buttons[arg].runas)
-            for (const cmd of buttons[arg].runas) {
-                if (cmd.opOnly && !pl.isOP()) continue;
-                pl.runcmd(cmd.command);
-            }
-        if (!buttons[arg].menu || (buttons[arg].menu.opOnly && !pl.isOP()))
-            return;
-        menu(pl, buttons[arg].menu);
+            for (const cmd of buttons[arg].runas) pl.runcmd(cmd.command);
+        if (!buttons[arg].menu) return;
+        if (!link) link = [];
+        menu(pl, buttons[arg].menu, link.push(mu));
     });
 }
