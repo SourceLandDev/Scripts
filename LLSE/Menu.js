@@ -39,6 +39,7 @@ const commands = config.init("commands", {});
 config.close();
 mc.listen("onUseItem", (pl, it) => {
     if (it.type in menuItem) menu(pl, menuItem[it.type]);
+    return false;
 });
 mc.listen("onServerStarted", () => {
     for (const command in commands) {
