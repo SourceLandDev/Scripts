@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("HubInfo", "信息栏", [1, 0, 0]);
+ll.registerPlugin("TPSWarn", "卡顿警告", [1, 0, 0]);
 
 setInterval(() => {
     const tps = ll.imports("TPSAPI", "GetRealTPS")();
