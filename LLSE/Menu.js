@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Menu", "菜单", [1, 0, 2]);
+ll.registerPlugin("Menu", "菜单", [1, 0, 4]);
 
 const config = new JsonConfigFile("plugins/Menu/config.json");
 const menuItem = config.init("menuItem", {});
@@ -86,6 +86,7 @@ function menu(pl, mu, link) {
             for (const cmd of buttons[arg].runas) pl.runcmd(cmd);
         if (!buttons[arg].menu) return;
         if (!link) link = [];
-        menu(pl, buttons[arg].menu, link.push(mu));
+        link.push(mu);
+        menu(pl, buttons[arg].menu, link);
     });
 }
