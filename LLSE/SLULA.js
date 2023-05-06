@@ -34,7 +34,7 @@ English:
 ll.registerPlugin("SLULA", "用户协议", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/SLULA/config.json");
-const server = config.init("server", 0);
+const serverName = config.init("serverName", "");
 config.close();
 const db = new KVDatabase("plugins/SLULA/data");
 mc.listen("onJoin", (pl) => {
@@ -53,14 +53,24 @@ mc.listen("onJoin", (pl) => {
                     "§l§4未同意用户协议，请勿使用本服提供的任何服务！"
                 );
             db.set(pl.xuid, true);
-            for (const player of mc.getOnlinePlayers()) {
-                if (player.xuid == pl.xuid) continue;
-                player.sendToast(
-                    ["源域", "方屿"][server],
-                    `欢迎${pl.realName}加入了我们！`
-                );
-            }
-            if (server) ll.imports("BlockIsland", "sendInit")(pl.xuid);
+            pl.sendModalForm(
+                "广播",
+                "是否向所有人广播有新人加入",
+                "否",
+                "是",
+                (pl, arg) => {
+                    if (arg) return;
+                    for (const player of mc.getOnlinePlayers()) {
+                        if (player.xuid == pl.xuid) continue;
+
+                        player.sendToast(
+                            serverName,
+                            `欢迎${pl.realName}加入了我们！`
+                        );
+                    }
+                    if (server) ll.imports("BlockIsland", "sendInit")(pl.xuid);
+                }
+            );
         }
     );
 });
