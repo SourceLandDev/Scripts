@@ -39,7 +39,8 @@ config.close();
 const db = new KVDatabase("plugins/SLULA/data");
 mc.listen("onJoin", (pl) => {
     if (db.get(pl.xuid)) {
-        if (server) ll.imports("BlockIsland", "sendInit")(pl.xuid);
+        if (ll.hasExported("BlockIsland", "sendInit"))
+            ll.imports("BlockIsland", "sendInit")(pl.xuid);
         return;
     }
     pl.sendModalForm(
@@ -55,7 +56,7 @@ mc.listen("onJoin", (pl) => {
             db.set(pl.xuid, true);
             pl.sendModalForm(
                 "广播",
-                "是否向所有人广播有新人加入",
+                "是否向其他在线玩家广播你的加入",
                 "否",
                 "是",
                 (pl, arg) => {
@@ -68,7 +69,8 @@ mc.listen("onJoin", (pl) => {
                             `欢迎${pl.realName}加入了我们！`
                         );
                     }
-                    if (server) ll.imports("BlockIsland", "sendInit")(pl.xuid);
+                    if (ll.hasExported("BlockIsland", "sendInit"))
+                        ll.imports("BlockIsland", "sendInit")(pl.xuid);
                 }
             );
         }
