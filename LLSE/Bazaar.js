@@ -250,7 +250,7 @@ function browseItems(pl) {
     const realItems = [];
     for (const item of itemsValue) {
         if (item.seller == pl.xuid) continue;
-        const newItem = mc.newItem(NBT.parseBinaryNBT(item.binnbt));
+        const newItem = mc.newItem(NBT.parseSNBT(item.snbt));
         fm.addButton(
             `${newItem.name}（${newItem.type} ${newItem.aux}）*${item.count}\n${
                 item.price
@@ -305,7 +305,7 @@ function itemsManagement(pl) {
     const sellers = db.get("sellers") ?? {};
     const items = db.get("items") ?? {};
     for (const uuid of sellers[pl.xuid].items) {
-        const newItem = mc.newItem(NBT.parseBinaryNBT(items[uuid].binnbt));
+        const newItem = mc.newItem(NBT.parseSNBT(items[uuid].snbt));
         fm.addButton(
             `${newItem.name}（${newItem.type} ${newItem.aux}）*${items[uuid].count}\n${items[uuid].price}${eco.name}/个`
         );
@@ -361,13 +361,13 @@ function itemBuy(pl, uuid) {
     if (items[uuid].count < canBuyMax) {
         canBuyMax = items[uuid].count;
     }
-    const itemNBT = NBT.parseBinaryNBT(items[uuid].binnbt);
+    const itemNBT = NBT.parseSNBT(items[uuid].snbt);
     const fm = mc
         .newCustomForm()
         .setTitle("购买物品")
         .addLabel(`类型：${itemNBT.getTag("Name")}`)
         .addLabel(`单价：${items[uuid].price}`)
-        .addLabel(`NBT：${itemNBT.toSNBT()}`);
+        .addLabel(`NBT：${items[uuid].snbt}`);
     const canBuyMin = 1 / items[uuid].price;
     if (canBuyMin < canBuyMax)
         fm.addSlider("数量", Math.round(canBuyMin), Math.round(canBuyMax));
@@ -390,7 +390,7 @@ function itemBuy(pl, uuid) {
             pl.sendToast("集市", "§c物品购买失败：已下线");
             return browseItems(pl);
         }
-        const num = Number(args[3]) ?? canBuyMax;
+        const num = Number(args[3] ?? canBuyMax);
         if (nowItems[uuid].count < num) {
             pl.sendToast("集市", "§c物品购买失败：库存不足");
             return browseItems(pl);
@@ -472,7 +472,7 @@ function offerProcess(pl, uuid) {
             pl.sendToast("集市", "§c报价处理失败：已下线");
             return browseOffers(pl);
         }
-        const num = Number(args[3]) ?? 1;
+        const num = Number(args[3] ?? 1);
         if (nowOffers[uuid].count < num) {
             pl.sendToast("集市", "§c报价处理失败：报价不足");
             return browseOffers(pl);
@@ -586,7 +586,7 @@ function itemUpload(pl, args = [0, "", 1]) {
             pl.sendToast("集市", "§c物品上架失败：无效价格");
             return itemUpload(pl, args);
         }
-        let num = Number(args[2]) ?? 1;
+        let num = Number(args[2] ?? 1);
         const invItems = pl.getInventory().getAllItems();
         let itemCount = 0;
         for (const invItem of invItems) {
@@ -601,7 +601,7 @@ function itemUpload(pl, args = [0, "", 1]) {
         const items = db.get("items") ?? {};
         const uuid = system.randomGuid();
         items[uuid] = {
-            binnbt: itemData[args[0]].item.getNbt().toBinaryNBT(),
+            snbt: itemData[args[0]].item.getNbt().toSNBT(),
             count: num,
             price: Number(args[1]),
             seller: pl.xuid,
@@ -631,7 +631,7 @@ function itemUpload(pl, args = [0, "", 1]) {
         return itemUpload(pl);
     });
 }
-function offerCreate(pl, args = ["", "0", "", "", "", 0]) {
+function offerCreate(pl, args = ["", "0", "", "", ""]) {
     if (eco.get(pl) <= 0) {
         pl.sendToast("集市", "§c报价创建失败：余额不足");
         return offersManagement(pl);
@@ -723,7 +723,7 @@ function itemTakedown(pl, uuid) {
                 1
             );
             pl.giveItem(
-                mc.newItem(NBT.parseBinaryNBT(nowItems[uuid].binnbt)),
+                mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt)),
                 nowItems[uuid].count
             );
             delete nowItems[uuid];
