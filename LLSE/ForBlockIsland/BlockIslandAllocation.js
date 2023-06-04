@@ -199,3 +199,8 @@ function returnPos(isX) {
     return pos;
 }
 ll.exports(sendInit, "BlockIsland", "sendInit");
+function removeData(pl) {
+    db.delete(pl.xuid);
+    pl.getInventory().removeAllItems();
+    sendInit(pl.xuid);
+}
