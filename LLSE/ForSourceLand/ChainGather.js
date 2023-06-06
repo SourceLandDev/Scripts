@@ -35,187 +35,166 @@ ll.registerPlugin("ChainGather", "连锁采集", [1, 0, 0]);
 
 const conf = new JsonConfigFile("plugins/ChainGather/config.json");
 const defaultState = conf.init("defaultState", false);
+const maxChain = conf.init("maxChain", 64);
 const blockList = conf.init("blockList", {
-    undefined: {},
-    empty: {},
-    "minecraft:wooden_pickaxe": {
-        "minecraft:coal_ore": 32,
-        "minecraft:quartz_ore": 32,
-        "minecraft:nether_gold_ore": 32,
-        "minecraft:deepslate_coal_ore": 32,
-    },
-    "minecraft:stone_pickaxe": {
-        "minecraft:iron_ore": 32,
-        "minecraft:lapis_ore": 32,
-        "minecraft:coal_ore": 32,
-        "minecraft:quartz_ore": 32,
-        "minecraft:nether_gold_ore": 32,
-        "minecraft:deepslate_iron_ore": 32,
-        "minecraft:deepslate_lapis_ore": 32,
-        "minecraft:deepslate_coal_ore": 32,
-    },
-    "minecraft:iron_pickaxe": {
-        "minecraft:iron_ore": 32,
-        "minecraft:gold_ore": 32,
-        "minecraft:diamond_ore": 32,
-        "minecraft:lapis_ore": 32,
-        "minecraft:redstone_ore": 32,
-        "minecraft:lit_redstone_ore": 32,
-        "minecraft:coal_ore": 32,
-        "minecraft:copper_ore": 32,
-        "minecraft:emerald_ore": 32,
-        "minecraft:quartz_ore": 32,
-        "minecraft:nether_gold_ore": 32,
-        "minecraft:deepslate_iron_ore": 32,
-        "minecraft:deepslate_gold_ore": 32,
-        "minecraft:deepslate_diamond_ore": 32,
-        "minecraft:deepslate_lapis_ore": 32,
-        "minecraft:deepslate_redstone_ore": 32,
-        "minecraft:lit_deepslate_redstone_ore": 32,
-        "minecraft:deepslate_emerald_ore": 32,
-        "minecraft:deepslate_coal_ore": 32,
-        "minecraft:deepslate_copper_ore": 32,
-    },
-    "minecraft:diamond_pickaxe": {
-        "minecraft:iron_ore": 32,
-        "minecraft:gold_ore": 32,
-        "minecraft:diamond_ore": 32,
-        "minecraft:lapis_ore": 32,
-        "minecraft:redstone_ore": 32,
-        "minecraft:lit_redstone_ore": 32,
-        "minecraft:coal_ore": 32,
-        "minecraft:copper_ore": 32,
-        "minecraft:emerald_ore": 32,
-        "minecraft:quartz_ore": 32,
-        "minecraft:nether_gold_ore": 32,
-        "minecraft:ancient_debris": 32,
-        "minecraft:deepslate_iron_ore": 32,
-        "minecraft:deepslate_gold_ore": 32,
-        "minecraft:deepslate_diamond_ore": 32,
-        "minecraft:deepslate_lapis_ore": 32,
-        "minecraft:deepslate_redstone_ore": 32,
-        "minecraft:lit_deepslate_redstone_ore": 32,
-        "minecraft:deepslate_emerald_ore": 32,
-        "minecraft:deepslate_coal_ore": 32,
-        "minecraft:deepslate_copper_ore": 32,
-    },
-    "minecraft:netherite_pickaxe": {
-        "minecraft:iron_ore": 32,
-        "minecraft:gold_ore": 32,
-        "minecraft:diamond_ore": 32,
-        "minecraft:lapis_ore": 32,
-        "minecraft:redstone_ore": 32,
-        "minecraft:lit_redstone_ore": 32,
-        "minecraft:coal_ore": 32,
-        "minecraft:copper_ore": 32,
-        "minecraft:emerald_ore": 32,
-        "minecraft:quartz_ore": 32,
-        "minecraft:nether_gold_ore": 32,
-        "minecraft:ancient_debris": 32,
-        "minecraft:deepslate_iron_ore": 32,
-        "minecraft:deepslate_gold_ore": 32,
-        "minecraft:deepslate_diamond_ore": 32,
-        "minecraft:deepslate_lapis_ore": 32,
-        "minecraft:deepslate_redstone_ore": 32,
-        "minecraft:lit_deepslate_redstone_ore": 32,
-        "minecraft:deepslate_emerald_ore": 32,
-        "minecraft:deepslate_coal_ore": 32,
-        "minecraft:deepslate_copper_ore": 32,
-    },
-    "minecraft:golden_pickaxe": {
-        "minecraft:coal_ore": 32,
-        "minecraft:quartz_ore": 32,
-        "minecraft:nether_gold_ore": 32,
-        "minecraft:deepslate_coal_ore": 32,
-    },
-    "minecraft:wooden_axe": {
-        "minecraft:log": 32,
-        "minecraft:log2": 32,
-        "minecraft:crimson_stem": 32,
-        "minecraft:warped_stem": 32,
-        "minecraft:brown_mushroom_block": 32,
-        "minecraft:red_mushroom_block": 32,
-    },
-    "minecraft:stone_axe": {
-        "minecraft:log": 32,
-        "minecraft:log2": 32,
-        "minecraft:crimson_stem": 32,
-        "minecraft:warped_stem": 32,
-        "minecraft:brown_mushroom_block": 32,
-        "minecraft:red_mushroom_block": 32,
-    },
-    "minecraft:iron_axe": {
-        "minecraft:log": 32,
-        "minecraft:log2": 32,
-        "minecraft:crimson_stem": 32,
-        "minecraft:warped_stem": 32,
-        "minecraft:brown_mushroom_block": 32,
-        "minecraft:red_mushroom_block": 32,
-    },
-    "minecraft:diamond_axe": {
-        "minecraft:log": 32,
-        "minecraft:log2": 32,
-        "minecraft:crimson_stem": 32,
-        "minecraft:warped_stem": 32,
-        "minecraft:brown_mushroom_block": 32,
-        "minecraft:red_mushroom_block": 32,
-    },
-    "minecraft:netherite_axe": {
-        "minecraft:log": 32,
-        "minecraft:log2": 32,
-        "minecraft:crimson_stem": 32,
-        "minecraft:warped_stem": 32,
-        "minecraft:brown_mushroom_block": 32,
-        "minecraft:red_mushroom_block": 32,
-    },
-    "minecraft:golden_axe": {
-        "minecraft:log": 32,
-        "minecraft:log2": 32,
-        "minecraft:crimson_stem": 32,
-        "minecraft:warped_stem": 32,
-        "minecraft:brown_mushroom_block": 32,
-        "minecraft:red_mushroom_block": 32,
-    },
+    "minecraft:wooden_pickaxe": [
+        "minecraft:coal_ore",
+        "minecraft:quartz_ore",
+        "minecraft:nether_gold_ore",
+        "minecraft:deepslate_coal_ore",
+    ],
+    "minecraft:stone_pickaxe": [
+        "minecraft:iron_ore",
+        "minecraft:lapis_ore",
+        "minecraft:coal_ore",
+        "minecraft:quartz_ore",
+        "minecraft:nether_gold_ore",
+        "minecraft:deepslate_iron_ore",
+        "minecraft:deepslate_lapis_ore",
+        "minecraft:deepslate_coal_ore",
+    ],
+    "minecraft:iron_pickaxe": [
+        "minecraft:iron_ore",
+        "minecraft:gold_ore",
+        "minecraft:diamond_ore",
+        "minecraft:lapis_ore",
+        "minecraft:redstone_ore",
+        "minecraft:lit_redstone_ore",
+        "minecraft:coal_ore",
+        "minecraft:copper_ore",
+        "minecraft:emerald_ore",
+        "minecraft:quartz_ore",
+        "minecraft:nether_gold_ore",
+        "minecraft:deepslate_iron_ore",
+        "minecraft:deepslate_gold_ore",
+        "minecraft:deepslate_diamond_ore",
+        "minecraft:deepslate_lapis_ore",
+        "minecraft:deepslate_redstone_ore",
+        "minecraft:lit_deepslate_redstone_ore",
+        "minecraft:deepslate_emerald_ore",
+        "minecraft:deepslate_coal_ore",
+        "minecraft:deepslate_copper_ore",
+    ],
+    "minecraft:diamond_pickaxe": [
+        "minecraft:iron_ore",
+        "minecraft:gold_ore",
+        "minecraft:diamond_ore",
+        "minecraft:lapis_ore",
+        "minecraft:redstone_ore",
+        "minecraft:lit_redstone_ore",
+        "minecraft:coal_ore",
+        "minecraft:copper_ore",
+        "minecraft:emerald_ore",
+        "minecraft:quartz_ore",
+        "minecraft:nether_gold_ore",
+        "minecraft:ancient_debris",
+        "minecraft:deepslate_iron_ore",
+        "minecraft:deepslate_gold_ore",
+        "minecraft:deepslate_diamond_ore",
+        "minecraft:deepslate_lapis_ore",
+        "minecraft:deepslate_redstone_ore",
+        "minecraft:lit_deepslate_redstone_ore",
+        "minecraft:deepslate_emerald_ore",
+        "minecraft:deepslate_coal_ore",
+        "minecraft:deepslate_copper_ore",
+    ],
+    "minecraft:netherite_pickaxe": [
+        "minecraft:iron_ore",
+        "minecraft:gold_ore",
+        "minecraft:diamond_ore",
+        "minecraft:lapis_ore",
+        "minecraft:redstone_ore",
+        "minecraft:lit_redstone_ore",
+        "minecraft:coal_ore",
+        "minecraft:copper_ore",
+        "minecraft:emerald_ore",
+        "minecraft:quartz_ore",
+        "minecraft:nether_gold_ore",
+        "minecraft:ancient_debris",
+        "minecraft:deepslate_iron_ore",
+        "minecraft:deepslate_gold_ore",
+        "minecraft:deepslate_diamond_ore",
+        "minecraft:deepslate_lapis_ore",
+        "minecraft:deepslate_redstone_ore",
+        "minecraft:lit_deepslate_redstone_ore",
+        "minecraft:deepslate_emerald_ore",
+        "minecraft:deepslate_coal_ore",
+        "minecraft:deepslate_copper_ore",
+    ],
+    "minecraft:golden_pickaxe": [
+        "minecraft:coal_ore",
+        "minecraft:quartz_ore",
+        "minecraft:nether_gold_ore",
+        "minecraft:deepslate_coal_ore",
+    ],
+    "minecraft:wooden_axe": [
+        "minecraft:log",
+        "minecraft:log2",
+        "minecraft:crimson_stem",
+        "minecraft:warped_stem",
+        "minecraft:brown_mushroom_block",
+        "minecraft:red_mushroom_block",
+    ],
+    "minecraft:stone_axe": [
+        "minecraft:log",
+        "minecraft:log2",
+        "minecraft:crimson_stem",
+        "minecraft:warped_stem",
+        "minecraft:brown_mushroom_block",
+        "minecraft:red_mushroom_block",
+    ],
+    "minecraft:iron_axe": [
+        "minecraft:log",
+        "minecraft:log2",
+        "minecraft:crimson_stem",
+        "minecraft:warped_stem",
+        "minecraft:brown_mushroom_block",
+        "minecraft:red_mushroom_block",
+    ],
+    "minecraft:diamond_axe": [
+        "minecraft:log",
+        "minecraft:log2",
+        "minecraft:crimson_stem",
+        "minecraft:warped_stem",
+        "minecraft:brown_mushroom_block",
+        "minecraft:red_mushroom_block",
+    ],
+    "minecraft:netherite_axe": [
+        "minecraft:log",
+        "minecraft:log2",
+        "minecraft:crimson_stem",
+        "minecraft:warped_stem",
+        "minecraft:brown_mushroom_block",
+        "minecraft:red_mushroom_block",
+    ],
+    "minecraft:golden_axe": [
+        "minecraft:log",
+        "minecraft:log2",
+        "minecraft:crimson_stem",
+        "minecraft:warped_stem",
+        "minecraft:brown_mushroom_block",
+        "minecraft:red_mushroom_block",
+    ],
 });
 conf.close();
 const states = {};
-const usingCache = [];
-const destroyingCache = [];
+const destroyingBlocks = [];
 mc.listen("onJoin", (pl) => (states[pl.xuid] = defaultState));
-mc.listen("onUseItem", (pl, it) => {
+mc.listen("onAttackBlock", (pl, _bl, it) => {
     if (!(it.type in blockList)) return;
-    const index = usingCache.indexOf(pl.xuid);
-    if (index >= 0) return;
-    usingCache.push(pl.xuid);
-    setTimeout(() => {
-        pl.tell(
-            `连锁采集已${
-                (states[pl.xuid] = states[pl.xuid] ? false : true)
-                    ? "启用"
-                    : "禁用"
-            }`,
-            5
-        );
-        usingCache.splice(index, 1);
-    }, 100);
+    pl.tell(
+        `连锁采集已${
+            (states[pl.xuid] = states[pl.xuid] ? false : true) ? "启用" : "禁用"
+        }`,
+        5
+    );
     return false;
 });
-mc.listen("onStartDestroyBlock", (pl) => {
-    const index = usingCache.indexOf(pl.xuid);
-    if (index < 0) return;
-    usingCache.splice(index, 1);
-});
 mc.listen("onDestroyBlock", (pl, bl) => {
-    const it = pl.getHand();
-    const maxChain = (
-        it.isNull()
-            ? blockList.empty
-            : !blockList[it.type]
-            ? blockList.undefined
-            : blockList[it.type]
-    )[bl.type];
-    if (!states[pl.xuid] || !maxChain || maxChain < 1) return;
-    destroyingCache.push(`${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`);
+    if (!states[pl.xuid]) return;
+    destroyingBlocks.push(
+        `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
+    );
     for (
         let i = 0, j = 1;
         i < 3;
@@ -225,17 +204,17 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         const y = i == 1 ? bl.pos.y + j : bl.pos.y;
         const z = i == 2 ? bl.pos.z + j : bl.pos.z;
         const nextBlock = mc.getBlock(x, y, z, bl.pos.dimid);
-        if (destroyingCache.length >= maxChain) break;
+        if (destroyingBlocks.length > maxChain) break;
         if (
-            destroyingCache.indexOf(`${x} ${y} ${z} ${bl.pos.dimid}`) >= 0 ||
+            destroyingBlocks.indexOf(`${x} ${y} ${z} ${bl.pos.dimid}`) >= 0 ||
             !pl.canDestroy(bl) ||
             nextBlock.type != bl.type
         )
             continue;
         pl.destroyBlock(nextBlock);
     }
-    destroyingCache.splice(
-        destroyingCache.indexOf(
+    destroyingBlocks.splice(
+        destroyingBlocks.indexOf(
             `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
         ),
         1
