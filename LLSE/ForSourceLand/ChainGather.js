@@ -180,7 +180,7 @@ conf.close();
 const states = {};
 const destroyingBlocks = [];
 mc.listen("onJoin", (pl) => (states[pl.xuid] = defaultState));
-mc.listen("onAttackBlock", (pl, _bl, it) => {
+mc.listen("onUseItemOn", (pl, it, _bl, _side, _pos) => {
     if (!(it.type in blockList)) return;
     pl.tell(
         `连锁采集已${
@@ -191,7 +191,14 @@ mc.listen("onAttackBlock", (pl, _bl, it) => {
     return false;
 });
 mc.listen("onDestroyBlock", (pl, bl) => {
-    if (!states[pl.xuid]) return;
+    const it = pl.getHand();
+    const effectBlocks = it.isNull()
+        ? blockList.empty
+        : !blockList[it.type]
+        ? blockList.undefined
+        : blockList[it.type];
+    if (!states[pl.xuid] || !effectBlocks || effectBlocks.indexOf(bl.type) < 0)
+        return;
     destroyingBlocks.push(
         `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
     );
