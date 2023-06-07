@@ -33,7 +33,7 @@ English:
 "use strict";
 import * as mc from "@minecraft/server";
 
-mc.world.events.beforeChat.subscribe((arg) => {
+mc.world.beforeEvents.chatSend.subscribe((arg) => {
     arg.cancel = true;
     const time = new Date();
     let hours = time.getHours();
