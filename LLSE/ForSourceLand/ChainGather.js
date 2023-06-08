@@ -179,12 +179,13 @@ const blockList = conf.init("blockList", {
 conf.close();
 const states = {};
 const destroyingBlocks = [];
-mc.listen("onJoin", (pl) => (states[pl.xuid] = defaultState));
 mc.listen("onUseItemOn", (pl, it, _bl, _side, _pos) => {
     if (!(it.type in blockList)) return;
     pl.tell(
         `连锁采集已${
-            (states[pl.xuid] = states[pl.xuid] ? false : true) ? "启用" : "禁用"
+            (states[pl.xuid] = states[pl.xuid] ?? defaultState ? false : true)
+                ? "启用"
+                : "禁用"
         }`,
         5
     );
