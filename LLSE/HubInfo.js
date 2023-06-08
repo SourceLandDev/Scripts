@@ -34,54 +34,62 @@ English:
 ll.registerPlugin("HubInfo", "信息栏", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/HubInfo/config.json");
+const command = config.init("command", "hubinfo");
 const serverName = config.init("serverName", "");
 config.close();
 const db = new KVDatabase("plugins/HubInfo/data");
 setInterval(() => {
-    const tps = ll.imports("TPSAPI", "GetRealTPS")();
-    const workingSet = ll.imports("InfoAPI", "GetWorkingSet")();
+    const tps = ll.hasExported("TPSAPI", "GetRealTPS")
+        ? ll.imports("TPSAPI", "GetRealTPS")()
+        : 20;
+    const workingSet = ll.hasExported("InfoAPI", "GetWorkingSet")
+        ? ll.imports("InfoAPI", "GetWorkingSet")()
+        : 0;
     for (const pl of mc.getOnlinePlayers()) {
         pl.removeSidebar();
         if (!db.get(pl.xuid)) continue;
         const dv = pl.getDevice();
         const list = {};
-        list[`§${dv.lastPacketLoss > 1 ? "c" : "a"}丢包`] = Math.round(
-            dv.lastPacketLoss
-        );
-        list[
-            `§${
-                dv.lastPing < 30
-                    ? "a"
-                    : dv.lastPing < 50
-                    ? "e"
-                    : dv.lastPing < 100
-                    ? "c"
-                    : dv.lastPing < 200
-                    ? "4"
-                    : dv.lastPing < 500
-                    ? 0
-                    : "b"
-            }延迟`
-        ] = dv.lastPing;
-        list[
-            `§${
-                tps > 18
-                    ? "a"
-                    : tps > 14
-                    ? "e"
-                    : tps > 9
-                    ? "c"
-                    : tps > 5
-                    ? "4"
-                    : 0
-            }负载`
-        ] = 100 - tps * 5;
-        list["内存"] = workingSet / 1024 / 1024;
+        if (dv.lastPacketLoss > 0)
+            list[`§${dv.lastPacketLoss > 0 ? "c" : "a"}丢包`] = Math.round(
+                dv.lastPacketLoss
+            );
+        if (dv.lastPing > 0)
+            list[
+                `§${
+                    dv.lastPing < 30
+                        ? "a"
+                        : dv.lastPing < 50
+                        ? "e"
+                        : dv.lastPing < 100
+                        ? "c"
+                        : dv.lastPing < 200
+                        ? "4"
+                        : dv.lastPing < 500
+                        ? 0
+                        : "b"
+                }延迟`
+            ] = dv.lastPing;
+        if (tps < 20)
+            list[
+                `§${
+                    tps > 18
+                        ? "a"
+                        : tps > 14
+                        ? "e"
+                        : tps > 9
+                        ? "c"
+                        : tps > 5
+                        ? "4"
+                        : 0
+                }负载`
+            ] = 100 - tps * 5;
+        if (workingSet > 0) list["内存"] = workingSet / 1024 / 1024;
         pl.setSidebar(" ", list);
     }
 }, 1000);
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand("hubinfo", "修改信息栏状态。", PermType.Any);
+    const cmd = mc.newCommand(command, "修改信息栏状态。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (!ori.player) return out.error("commands.generic.noTargetMatch");

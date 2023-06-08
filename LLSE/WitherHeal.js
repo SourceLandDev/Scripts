@@ -1,6 +1,6 @@
 /*
 English:
-    TPSWarn
+    WitherHeal
     Copyright (C) 2023  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    卡顿警告
+    凋灵回血
     版权所有 © 2023  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,11 +31,8 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("TPSWarn", "卡顿警告", [1, 0, 0]);
+ll.registerPlugin("WitherHeal", "凋灵回血", [1, 0, 0]);
 
-setInterval(() => {
-    const tps = ll.hasExported("TPSAPI", "GetRealTPS")
-        ? ll.imports("TPSAPI", "GetRealTPS")()
-        : 20;
-    if (tps < 14) fastLog(`当前TPS：${tps}`);
-}, 1000);
+mc.listen("onMobDie", (_mob, src, _cause) => {
+    if (src && src.type == "minecraft:wither") src.heal(5);
+});

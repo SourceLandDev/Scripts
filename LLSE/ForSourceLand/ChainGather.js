@@ -33,10 +33,10 @@ English:
 "use strict";
 ll.registerPlugin("ChainGather", "连锁采集", [1, 0, 0]);
 
-const conf = new JsonConfigFile("plugins/ChainGather/config.json");
-const defaultState = conf.init("defaultState", false);
-const maxChain = conf.init("maxChain", 64);
-const blockList = conf.init("blockList", {
+const config = new JsonConfigFile("plugins/ChainGather/config.json");
+const defaultState = config.init("defaultState", false);
+const maxChain = config.init("maxChain", 64);
+const blockList = config.init("blockList", {
     "minecraft:wooden_pickaxe": {
         undefined: {
             "minecraft:coal_ore": undefined,
@@ -45,6 +45,7 @@ const blockList = conf.init("blockList", {
             "minecraft:deepslate_coal_ore": undefined,
         },
         16: {
+            price: 1,
             "minecraft:ice": undefined,
             "minecraft:blue_ice": undefined,
             "minecraft:packed_ice": undefined,
@@ -62,6 +63,7 @@ const blockList = conf.init("blockList", {
             "minecraft:deepslate_coal_ore": undefined,
         },
         16: {
+            price: 1,
             "minecraft:ice": undefined,
             "minecraft:blue_ice": undefined,
             "minecraft:packed_ice": undefined,
@@ -91,6 +93,7 @@ const blockList = conf.init("blockList", {
             "minecraft:deepslate_copper_ore": undefined,
         },
         16: {
+            price: 1,
             "minecraft:ice": undefined,
             "minecraft:blue_ice": undefined,
             "minecraft:packed_ice": undefined,
@@ -121,6 +124,7 @@ const blockList = conf.init("blockList", {
             "minecraft:deepslate_copper_ore": undefined,
         },
         16: {
+            price: 1,
             "minecraft:ice": undefined,
             "minecraft:blue_ice": undefined,
             "minecraft:packed_ice": undefined,
@@ -151,6 +155,7 @@ const blockList = conf.init("blockList", {
             "minecraft:deepslate_copper_ore": undefined,
         },
         16: {
+            price: 1,
             "minecraft:ice": undefined,
             "minecraft:blue_ice": undefined,
             "minecraft:packed_ice": undefined,
@@ -164,6 +169,7 @@ const blockList = conf.init("blockList", {
             "minecraft:deepslate_coal_ore": undefined,
         },
         16: {
+            price: 1,
             "minecraft:ice": undefined,
             "minecraft:blue_ice": undefined,
             "minecraft:packed_ice": undefined,
@@ -292,7 +298,7 @@ const blockList = conf.init("blockList", {
             "minecraft:carrot": 7,
             "minecraft:beetroot": 7,
             "minecraft:brown_mushroom": undefined,
-            "minecraft:red_mushroom	": undefined,
+            "minecraft:red_mushroom": undefined,
             "minecraft:nether_wart": 3,
         },
     },
@@ -305,7 +311,7 @@ const blockList = conf.init("blockList", {
             "minecraft:carrot": 7,
             "minecraft:beetroot": 7,
             "minecraft:brown_mushroom": undefined,
-            "minecraft:red_mushroom	": undefined,
+            "minecraft:red_mushroom": undefined,
             "minecraft:nether_wart": 3,
         },
     },
@@ -318,7 +324,7 @@ const blockList = conf.init("blockList", {
             "minecraft:carrot": 7,
             "minecraft:beetroot": 7,
             "minecraft:brown_mushroom": undefined,
-            "minecraft:red_mushroom	": undefined,
+            "minecraft:red_mushroom": undefined,
             "minecraft:nether_wart": 3,
         },
     },
@@ -331,7 +337,7 @@ const blockList = conf.init("blockList", {
             "minecraft:carrot": 7,
             "minecraft:beetroot": 7,
             "minecraft:brown_mushroom": undefined,
-            "minecraft:red_mushroom	": undefined,
+            "minecraft:red_mushroom": undefined,
             "minecraft:nether_wart": 3,
         },
     },
@@ -344,7 +350,7 @@ const blockList = conf.init("blockList", {
             "minecraft:carrot": 7,
             "minecraft:beetroot": 7,
             "minecraft:brown_mushroom": undefined,
-            "minecraft:red_mushroom	": undefined,
+            "minecraft:red_mushroom": undefined,
             "minecraft:nether_wart": 3,
         },
     },
@@ -357,13 +363,45 @@ const blockList = conf.init("blockList", {
             "minecraft:carrot": 7,
             "minecraft:beetroot": 7,
             "minecraft:brown_mushroom": undefined,
-            "minecraft:red_mushroom	": undefined,
+            "minecraft:red_mushroom": undefined,
             "minecraft:nether_wart": 3,
         },
     },
 });
-conf.close();
+const currencyType = config.init("currencyType", "llmoney");
+const currencyName = config.init("currencyName", "元");
+const eco = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
+                name: currencyName,
+            };
+        case "scoreboard":
+            const scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: (pl) => pl.getScore(scoreboard),
+                name: currencyName,
+            };
+        case "exp":
+            return {
+                add: (pl, money) => pl.addExperience(money),
+                reduce: (pl, money) => pl.reduceExperience(money),
+                get: (pl) => pl.getTotalExperience(),
+                name: "经验值",
+            };
+        default:
+            throw "配置项异常！";
+    }
+})();
+const command = config.init("command", "paidchaingather");
+config.close();
 const states = {};
+const paidStates = {};
 const destroyingBlocks = [];
 mc.listen("onUseItemOn", (pl, it, _bl, _side, _pos) => {
     if (!(it.type in blockList)) return;
@@ -381,23 +419,31 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     const it = pl.getHand();
     const effectBlocks = it.isNull()
         ? blockList.empty
-        : !blockList[it.type]
-        ? blockList.undefined
-        : blockList[it.type];
+        : it.type in blockList
+        ? blockList[it.type]
+        : blockList.undefined;
     if (!states[pl.xuid] || !effectBlocks) return;
     let available =
-        bl.type in effectBlocks.undefined &&
-        bl.aux == effectBlocks.undefined[bl.type];
+        "undefined" in effectBlocks
+            ? bl.type in effectBlocks.undefined &&
+              bl.aux == effectBlocks.undefined[bl.type]
+            : false;
+    let price =
+        "undefined" in effectBlocks ? effectBlocks.undefined.price ?? 0 : 0;
     const tag = it.getNbt().getTag("tag");
     const ench = tag ? tag.getData("ench") : undefined;
     if (!available && ench)
-        for (const e of ench.toArray())
+        for (const e of ench.toArray()) {
             if (
-                bl.type in effectBlocks[e] &&
-                bl.aux == effectBlocks.undefined[bl.type]
+                !(e in effectBlocks) ||
+                !(bl.type in effectBlocks[e]) ||
+                bl.aux != effectBlocks[e][bl.type]
             )
-                available = true;
-    if (!available) return;
+                continue;
+            available = true;
+            price = effectBlocks[e].price ?? 0;
+        }
+    if (!available || (price > 0 && !paidStates[pl.xuid])) return;
     destroyingBlocks.push(
         `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
     );
@@ -425,7 +471,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
                     y: y,
                     z: z,
                     dimid: bl.pos.dimid,
-                }) != "-1") ||
+                }) != -1) ||
             (ll.hasExported("Territory", "HasPermission") &&
                 !ll.imports("Territory", "HasPermission")(
                     pl.xuid,
@@ -441,6 +487,8 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         )
             continue;
         pl.destroyBlock(nextBlock);
+        if (price <= 0) continue;
+        eco.reduce(pl, price);
     }
     destroyingBlocks.splice(
         destroyingBlocks.indexOf(
@@ -448,4 +496,20 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         ),
         1
     );
+});
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "修改付费连锁采集状态。", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        pl.tell(
+            `付费连锁采集已${
+                (paidStates[pl.xuid] = paidStates[pl.xuid] ? false : true)
+                    ? "启用"
+                    : "禁用"
+            }`,
+            5
+        );
+    });
+    cmd.setup();
 });
