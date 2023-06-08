@@ -35,8 +35,9 @@ import * as mc from "@minecraft/server";
 
 mc.world.beforeEvents.explosion.subscribe((arg) => {
     if (
-        arg.source.typeId == "minecraft:creeper" ||
-        arg.source.typeId == "minecraft:fireball"
+        arg.source &&
+        (arg.source.typeId == "minecraft:creeper" ||
+            arg.source.typeId == "minecraft:fireball")
     )
         arg.setImpactedBlocks([]);
 });
