@@ -1,15 +1,15 @@
 {
     "format_version": 2,
     "header": {
-        "name": "Ptrarc",
-        "description": "用于 源域服务器群 的行为包",
+        "name": "SourceLand",
+        "description": "用于 源域服务器群 的脚本",
         "uuid": "c3a57a37-46bc-472c-872a-58b6c4b3c5be",
         "version": [1, 0, 0],
         "min_engine_version": [1, 19, 81]
     },
     "modules": [
         {
-            "description": "脚本部分",
+            "description": "script",
             "type": "script",
             "language": "javascript",
             "uuid": "504cafed-7903-420e-9493-4d954a34529f",

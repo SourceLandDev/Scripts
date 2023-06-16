@@ -394,27 +394,14 @@ const eco = (() => {
                 get: (pl) => pl.getTotalExperience(),
                 name: "经验值",
             };
-        default:
-            throw "配置项异常！";
     }
 })();
-const command = config.init("command", "paidchaingather");
+const command = config.init("command", "chaingather");
+const paidCommand = config.init("paidCommand", "paidchaingather");
 config.close();
 const states = {};
 const paidStates = {};
 const destroyingBlocks = [];
-mc.listen("onUseItemOn", (pl, it, _bl, _side, _pos) => {
-    if (!(it.type in blockList)) return;
-    pl.tell(
-        `连锁采集已${
-            (states[pl.xuid] = states[pl.xuid] ?? defaultState ? false : true)
-                ? "启用"
-                : "禁用"
-        }`,
-        5
-    );
-    return false;
-});
 mc.listen("onDestroyBlock", (pl, bl) => {
     const it = pl.getHand();
     const effectBlocks = it.isNull()
@@ -427,7 +414,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         "undefined" in effectBlocks
             ? bl.type in effectBlocks.undefined &&
               (effectBlocks.undefined[bl.type] < 0 ||
-                  bl.aux == effectBlocks.undefined[bl.type])
+                  bl.tileData == effectBlocks.undefined[bl.type])
             : false;
     let price =
         "undefined" in effectBlocks ? effectBlocks.undefined.price ?? 0 : 0;
@@ -439,7 +426,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
                 !(e in effectBlocks) ||
                 !(bl.type in effectBlocks[e]) ||
                 (effectBlocks[e][bl.type] >= 0 &&
-                    bl.aux != effectBlocks[e][bl.type])
+                    bl.tileData != effectBlocks[e][bl.type])
             )
                 continue;
             available = true;
@@ -500,20 +487,37 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     );
 });
 mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "修改付费连锁采集状态。", PermType.Any);
+    const cmd = mc.newCommand(command, "修改连锁采集状态。", PermType.Any);
     cmd.overload();
     cmd.setCallback((_cmd, ori, out, _res) => {
         if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        ori.player.tell(
+        out.success(
+            `连锁采集已${
+                (states[ori.player.xuid] =
+                    states[ori.player.xuid] ?? defaultState ? false : true)
+                    ? "启用"
+                    : "禁用"
+            }`
+        );
+    });
+    cmd.setup();
+    const paidCmd = mc.newCommand(
+        paidCommand,
+        "修改付费连锁采集状态。",
+        PermType.Any
+    );
+    paidCmd.overload();
+    paidCmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        out.success(
             `付费连锁采集已${
                 (paidStates[ori.player.xuid] = paidStates[ori.player.xuid]
                     ? false
                     : true)
                     ? "启用"
                     : "禁用"
-            }`,
-            5
+            }`
         );
     });
-    cmd.setup();
+    paidCmd.setup();
 });
