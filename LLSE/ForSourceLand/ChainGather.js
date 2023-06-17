@@ -423,16 +423,20 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     if (!available && ench)
         for (const e of ench.toArray()) {
             if (
-                !(e in effectBlocks) ||
-                !(bl.type in effectBlocks[e]) ||
-                (effectBlocks[e][bl.type] >= 0 &&
-                    bl.tileData != effectBlocks[e][bl.type])
+                !(e.id in effectBlocks) ||
+                !(bl.type in effectBlocks[e.id]) ||
+                (effectBlocks[e.id][bl.type] >= 0 &&
+                    bl.tileData != effectBlocks[e.id][bl.type])
             )
                 continue;
             available = true;
-            price = effectBlocks[e].price ?? 0;
+            price = effectBlocks[e.id].price ?? 0;
         }
-    if (!available || (price > 0 && !paidStates[pl.xuid])) return;
+    if (
+        !available ||
+        (price > 0 && !paidStates[pl.xuid] && eco.get(pl) < price)
+    )
+        return;
     destroyingBlocks.push(
         `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
     );
