@@ -434,7 +434,8 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         }
     if (
         !available ||
-        (price > 0 && !paidStates[pl.xuid] && eco.get(pl) < price)
+        !paidStates[pl.xuid] ||
+        (price > 0 && eco.get(pl) < price)
     )
         return;
     destroyingBlocks.push(
