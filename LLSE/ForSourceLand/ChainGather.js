@@ -432,11 +432,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
             available = true;
             price = effectBlocks[e.id].price ?? 0;
         }
-    if (
-        !available ||
-        !paidStates[pl.xuid] ||
-        (price > 0 && eco.get(pl) < price)
-    )
+    if (!available || (paidStates[pl.xuid] && price > 0 && eco.get(pl) < price))
         return;
     destroyingBlocks.push(
         `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
@@ -476,11 +472,14 @@ mc.listen("onDestroyBlock", (pl, bl) => {
                     "DestroyBlock"
                 )) ||
             destroyingBlocks.indexOf(`${x} ${y} ${z} ${bl.pos.dimid}`) >= 0 ||
-            !pl.canDestroy(bl) ||
+            (ll.hasExported("Destroy", "CanPlayerDo") &&
+                !ll.imports("Destroy", "CanPlayerDo")(pl, nextBlock)) ||
             nextBlock.type != bl.type
         )
             continue;
-        pl.destroyBlock(nextBlock);
+        if (ll.hasExported("Destroy", "AsPlayer"))
+            ll.imports("Destroy", "AsPlayer")(pl, nextBlock);
+        else nextBlock.destroy(true);
         if (price <= 0) continue;
         eco.reduce(pl, price);
     }

@@ -33,9 +33,18 @@ English:
 "use strict";
 ll.registerPlugin("TPSWarn", "卡顿警告", [1, 0, 0]);
 
+let count = 0;
 setInterval(() => {
     const tps = ll.hasExported("TPSAPI", "GetRealTPS")
         ? ll.imports("TPSAPI", "GetRealTPS")()
         : 20;
-    if (tps < 14) fastLog(`当前TPS：${tps}`);
+    if (tps > 13) {
+        count = 0;
+        return;
+    }
+    ++count;
+    fastLog(`当前TPS：${tps}`);
+    if (count < 10) return;
+    mc.runcmdEx("execute as @e[type=item] at @s run tp @p");
+    mc.runcmdEx("execute as @e[type=xp_orb] at @s run tp @p");
 }, 1000);
