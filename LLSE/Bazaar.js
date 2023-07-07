@@ -252,9 +252,7 @@ function browseItems(pl) {
         if (item.seller == pl.xuid) continue;
         const newItem = mc.newItem(NBT.parseSNBT(item.snbt));
         fm.addButton(
-            `${newItem.name}（${newItem.type} ${newItem.aux}）*${item.count}\n${
-                item.price
-            }${eco.name}/个 ${data.xuid2name(item.seller)}`
+            `${newItem.name}（${newItem.aux}）*${item.count}\n${item.price}${eco.name}/个`
         );
         realItems.push(itemsKey[itemsValue.indexOf(item)]);
     }
@@ -284,9 +282,7 @@ function browseOffers(pl) {
         if (offer.ench) nbtData.ench = new NbtCompound(offer.ench);
         const item = mc.newItem(new NbtCompound(nbtData));
         fm.addButton(
-            `${item.name}（${item.type} ${item.aux}）*${offer.count}\n${
-                offer.price
-            }${eco.name}/个 ${data.xuid2name(offer.seller)}`
+            `${item.name}（${item.aux}）*${offer.count}\n${offer.price}${eco.name}/个`
         );
         realOffers.push(offersKey[offersValue.indexOf(offer)]);
     }

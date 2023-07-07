@@ -39,12 +39,6 @@ const motd = config.init("motd", []);
 config.close();
 let index = 0;
 setInterval(() => {
-    mc.setMotd(`${process(motd[index])}§r`);
+    mc.setMotd(`${motd[index]}§r`);
     index = index == motd.length - 1 ? 0 : index + 1;
 }, interval * 1000);
-function process(str) {
-    str = str.replace(/%AllPlayers%/g, data.getAllPlayerInfo().length);
-    if (ll.hasExported("MostPlayers", "Get"))
-        str = str.replace(/%MostPlayers%/g, ll.imports("MostPlayers", "Get")());
-    return str;
-}

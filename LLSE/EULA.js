@@ -1,6 +1,6 @@
 /*
 English:
-    SLULA
+    EULA
     Copyright (C) 2023  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -31,12 +31,12 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("SLULA", "用户协议", [1, 0, 0]);
+ll.registerPlugin("EULA", "用户协议", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins/SLULA/config.json");
+const config = new JsonConfigFile("plugins/EULA/config.json");
 const serverName = config.init("serverName", "");
 config.close();
-const db = new KVDatabase("plugins/SLULA/data");
+const db = new KVDatabase("plugins/EULA/data");
 mc.listen("onJoin", (pl) => {
     if (db.get(pl.xuid)) {
         if (ll.hasExported("BlockIsland", "sendInit"))
@@ -44,8 +44,8 @@ mc.listen("onJoin", (pl) => {
         return;
     }
     pl.sendModalForm(
-        "源域用户协议",
-        "前言\n感谢您游玩源域服务器组！\n本服务器组与Mojang及其母公司Microsoft无任何关联。\n\n重要须知\n一、用户在使用本服务器组提供的服务前，请仔细阅读本协议中的各项条款。\n二、如用户不同意本协议的任何条款，则不得使用本服务器组提供的服务。一旦用户使用本服务器组提供的服务，则视为用户完全同意本条款的全部内容。\n三、本服务器组有权利依据本协议剥夺用户的受服务权。\n四、本服务器组有更改本协议的权利。\n五、未圈地的区域默认为公有。若需要保护资源，请圈地。\n\n规则\n一、您的一切行为必须符合中华人民共和国的相关法律。\n二、您的一切行为必须符合《Minecraft最终用户协议》。\n三、不得以任何理由利用游戏漏洞或进行恶意行为。\n四、不得散布谣言或冒充他人。\n五、不得用损害他人游玩体验的方式谋取利益。\n六、除非管理人员允许，否则不得进行任何与本服无关的宣传行为。",
+        "您是否同意以下协议",
+        File.readFrom("plugins/EULA/LICENSE"),
         "拒绝",
         "接受",
         (pl, arg) => {
@@ -64,12 +64,12 @@ mc.listen("onJoin", (pl) => {
                         ll.imports("BlockIsland", "sendInit")(pl.xuid);
                     if (arg) return;
                     const msg = `欢迎${pl.realName}加入了我们！`;
-                    if (ll.hasExported("MessageSync", "SendMessage"))
-                        ll.imports("MessageSync", "SendMessage")(msg);
                     for (const player of mc.getOnlinePlayers()) {
                         if (player.xuid == pl.xuid) continue;
                         player.sendToast(serverName, msg);
                     }
+                    if (ll.hasExported("MessageSync", "SendMessage"))
+                        ll.imports("MessageSync", "SendMessage")(msg);
                 }
             );
         }

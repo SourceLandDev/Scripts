@@ -184,7 +184,7 @@ const blockList = config.init("blockList", {
             "minecraft:acacia_log": 0,
             "minecraft:dark_oak_log": 0,
             "minecraft:mangrove_log": 0,
-            "minecraft:cherry_log": 0,
+            "minecraft:cherry_log": -1,
             "minecraft:crimson_stem": 0,
             "minecraft:warped_stem": 0,
             "minecraft:pumpkin": -1,
@@ -203,7 +203,7 @@ const blockList = config.init("blockList", {
             "minecraft:acacia_log": 0,
             "minecraft:dark_oak_log": 0,
             "minecraft:mangrove_log": 0,
-            "minecraft:cherry_log": 0,
+            "minecraft:cherry_log": -1,
             "minecraft:crimson_stem": 0,
             "minecraft:warped_stem": 0,
             "minecraft:pumpkin": -1,
@@ -222,7 +222,7 @@ const blockList = config.init("blockList", {
             "minecraft:acacia_log": 0,
             "minecraft:dark_oak_log": 0,
             "minecraft:mangrove_log": 0,
-            "minecraft:cherry_log": 0,
+            "minecraft:cherry_log": -1,
             "minecraft:crimson_stem": 0,
             "minecraft:warped_stem": 0,
             "minecraft:pumpkin": -1,
@@ -241,7 +241,7 @@ const blockList = config.init("blockList", {
             "minecraft:acacia_log": 0,
             "minecraft:dark_oak_log": 0,
             "minecraft:mangrove_log": 0,
-            "minecraft:cherry_log": 0,
+            "minecraft:cherry_log": -1,
             "minecraft:crimson_stem": 0,
             "minecraft:warped_stem": 0,
             "minecraft:pumpkin": -1,
@@ -260,7 +260,7 @@ const blockList = config.init("blockList", {
             "minecraft:acacia_log": 0,
             "minecraft:dark_oak_log": 0,
             "minecraft:mangrove_log": 0,
-            "minecraft:cherry_log": 0,
+            "minecraft:cherry_log": -1,
             "minecraft:crimson_stem": 0,
             "minecraft:warped_stem": 0,
             "minecraft:pumpkin": -1,
@@ -279,7 +279,7 @@ const blockList = config.init("blockList", {
             "minecraft:acacia_log": 0,
             "minecraft:dark_oak_log": 0,
             "minecraft:mangrove_log": 0,
-            "minecraft:cherry_log": 0,
+            "minecraft:cherry_log": -1,
             "minecraft:crimson_stem": 0,
             "minecraft:warped_stem": 0,
             "minecraft:pumpkin": -1,
@@ -437,6 +437,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     destroyingBlocks.push(
         `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
     );
+    const playerPointer = pl.asPointer();
     for (
         let i = 0, j = 1;
         i < 3;
@@ -446,6 +447,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         const y = i == 1 ? bl.pos.y + j : bl.pos.y;
         const z = i == 2 ? bl.pos.z + j : bl.pos.z;
         const nextBlock = mc.getBlock(x, y, z, bl.pos.dimid);
+        const nextBlockPointer = nextBlock.asPointer();
         if (destroyingBlocks.length > maxChain) break;
         if (
             (ll.hasExported("landEX_GetHasPLandPermbyPos") &&
@@ -472,14 +474,25 @@ mc.listen("onDestroyBlock", (pl, bl) => {
                     "DestroyBlock"
                 )) ||
             destroyingBlocks.indexOf(`${x} ${y} ${z} ${bl.pos.dimid}`) >= 0 ||
-            (ll.hasExported("Destroy", "CanPlayerDo") &&
-                !ll.imports("Destroy", "CanPlayerDo")(pl, nextBlock)) ||
-            nextBlock.type != bl.type
+            nextBlock.type != bl.type ||
+            nextBlock.tileData != bl.tileData ||
+            !NativeFunction.fromSymbol(
+                "?canDestroy@Player@@QEBA_NAEBVBlock@@@Z"
+            ).call(playerPointer, nextBlockPointer)
         )
             continue;
-        if (ll.hasExported("Destroy", "AsPlayer"))
-            ll.imports("Destroy", "AsPlayer")(pl, nextBlock);
-        else nextBlock.destroy(true);
+        const pointer = nextBlockPointer.offset(10);
+        const cache = pointer.float;
+        const survivalModePointer = NativePointer.malloc(0);
+        NativeFunction.fromSymbol("??0SurvivalMode@@QEAA@AEAVPlayer@@@Z").call(
+            survivalModePointer.asRef(),
+            playerPointer
+        );
+        pointer.float = 0;
+        NativeFunction.fromSymbol(
+            "?destroyBlock@SurvivalMode@@UEAA_NAEBVBlockPos@@E@Z"
+        ).call(survivalModePointer, nextBlockPointer, 0);
+        pointer.float = cache;
         if (price <= 0) continue;
         eco.reduce(pl, price);
     }
