@@ -67,15 +67,13 @@ const eco = (() => {
     }
 })();
 config.close();
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        main(ori.player);
-    });
-    cmd.setup();
+const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (!ori.player) return out.error("commands.generic.noTargetMatch");
+    main(ori.player);
 });
+cmd.setup();
 function main(pl) {
     const money = eco.get(pl);
     if (money <= 0) return pl.sendToast("经济", "§c转账失败：余额不足");

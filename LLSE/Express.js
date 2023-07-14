@@ -67,15 +67,13 @@ const eco = (() => {
     }
 })();
 config.close();
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开物流菜单。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        main(ori.player);
-    });
-    cmd.setup();
+const cmd = mc.newCommand(command, "打开物流菜单。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (!ori.player) return out.error("commands.generic.noTargetMatch");
+    main(ori.player);
 });
+cmd.setup();
 function main(pl) {
     const plnms = [];
     const plsxuid = [];

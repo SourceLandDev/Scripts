@@ -67,15 +67,13 @@ const eco = (() => {
 })();
 config.close();
 const db = new KVDatabase("plugins/RedPacket/data");
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开红包菜单。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        main(ori.player);
-    });
-    cmd.setup();
+const cmd = mc.newCommand(command, "打开红包菜单。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (!ori.player) return out.error("commands.generic.noTargetMatch");
+    main(ori.player);
 });
+cmd.setup();
 function main(pl) {
     const fm = mc.newSimpleForm().setTitle("红包列表").addButton("发送红包");
     const keys = db.listKey();

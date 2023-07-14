@@ -402,6 +402,39 @@ config.close();
 const states = {};
 const paidStates = {};
 const destroyingBlocks = [];
+const cmd = mc.newCommand(command, "修改连锁采集状态。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (!ori.player) return out.error("commands.generic.noTargetMatch");
+    out.success(
+        `连锁采集已${
+            (states[ori.player.xuid] =
+                states[ori.player.xuid] ?? defaultState ? false : true)
+                ? "启用"
+                : "禁用"
+        }`
+    );
+});
+cmd.setup();
+const paidCmd = mc.newCommand(
+    paidCommand,
+    "修改付费连锁采集状态。",
+    PermType.Any
+);
+paidCmd.overload();
+paidCmd.setCallback((_cmd, ori, out, _res) => {
+    if (!ori.player) return out.error("commands.generic.noTargetMatch");
+    out.success(
+        `付费连锁采集已${
+            (paidStates[ori.player.xuid] = paidStates[ori.player.xuid]
+                ? false
+                : true)
+                ? "启用"
+                : "禁用"
+        }`
+    );
+});
+paidCmd.setup();
 mc.listen("onDestroyBlock", (pl, bl) => {
     const it = pl.getHand();
     const effectBlocks = it.isNull()
@@ -502,39 +535,4 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         ),
         1
     );
-});
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "修改连锁采集状态。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        out.success(
-            `连锁采集已${
-                (states[ori.player.xuid] =
-                    states[ori.player.xuid] ?? defaultState ? false : true)
-                    ? "启用"
-                    : "禁用"
-            }`
-        );
-    });
-    cmd.setup();
-    const paidCmd = mc.newCommand(
-        paidCommand,
-        "修改付费连锁采集状态。",
-        PermType.Any
-    );
-    paidCmd.overload();
-    paidCmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        out.success(
-            `付费连锁采集已${
-                (paidStates[ori.player.xuid] = paidStates[ori.player.xuid]
-                    ? false
-                    : true)
-                    ? "启用"
-                    : "禁用"
-            }`
-        );
-    });
-    paidCmd.setup();
 });

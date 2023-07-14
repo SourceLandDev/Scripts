@@ -153,15 +153,13 @@ const eff = [
     "延长缓降",
     "加强迟缓",
 ];
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "打开集市。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        main(ori.player);
-    });
-    cmd.setup();
+const cmd = mc.newCommand(command, "打开集市。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (!ori.player) return out.error("commands.generic.noTargetMatch");
+    main(ori.player);
 });
+cmd.setup();
 mc.listen("onJoin", (pl) => {
     const sellers = db.get("sellers") ?? {};
     if (!(pl.xuid in sellers)) {

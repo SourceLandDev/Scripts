@@ -38,6 +38,14 @@ const command = config.init("command", "hubinfo");
 const serverName = config.init("serverName", "");
 config.close();
 const db = new KVDatabase("plugins/HubInfo/data");
+const cmd = mc.newCommand(command, "修改信息栏状态。", PermType.Any);
+cmd.overload();
+cmd.setCallback((_cmd, ori, out, _res) => {
+    if (!ori.player) return out.error("commands.generic.noTargetMatch");
+    db.set(ori.player.xuid, !db.get(ori.player.xuid));
+    out.success(`信息栏${db.get(ori.player.xuid) ? "已启用" : "已禁用"}`);
+});
+cmd.setup();
 setInterval(() => {
     const tps = ll.hasExported("TPSAPI", "GetRealTPS")
         ? ll.imports("TPSAPI", "GetRealTPS")()
@@ -52,7 +60,7 @@ setInterval(() => {
         const list = {};
         if (dv.lastPacketLoss > 0)
             list[`§${dv.lastPacketLoss > 0 ? "c" : "a"}丢包`] = Math.round(
-                dv.lastPacketLoss
+                dv.lastPacketLoss * 100
             );
         if (dv.lastPing > 0)
             list[
@@ -68,7 +76,7 @@ setInterval(() => {
                         : dv.lastPing < 500
                         ? 0
                         : "b"
-                }延迟`
+                }时延`
             ] = dv.lastPing;
         if (tps < 20)
             list[
@@ -88,13 +96,3 @@ setInterval(() => {
         pl.setSidebar(" ", list);
     }
 }, 1000);
-mc.listen("onServerStarted", () => {
-    const cmd = mc.newCommand(command, "修改信息栏状态。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        db.set(ori.player.xuid, !db.get(ori.player.xuid));
-        out.success(`信息栏${db.get(ori.player.xuid) ? "已启用" : "已禁用"}`);
-    });
-    cmd.setup();
-});
