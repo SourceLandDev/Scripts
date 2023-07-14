@@ -61,8 +61,6 @@ const eco = (() => {
                 get: (pl) => pl.getCurrentExperience(),
                 name: "经验值",
             };
-        default:
-            throw "配置项异常！";
     }
 })();
 config.close();
@@ -93,14 +91,12 @@ function main(pl) {
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return;
-        switch (arg) {
-            case 0:
-                if (pl.getLevel() <= 0)
-                    return pl.sendToast("经济", "§c红包发送失败：余额不足");
-                return send(pl);
-            default:
-                redpacket(pl, keys[arg - 1]);
+        if (arg <= 0) {
+            if (pl.getLevel() <= 0)
+                return pl.sendToast("经济", "§c红包发送失败：余额不足");
+            return send(pl);
         }
+        redpacket(pl, keys[arg - 1]);
     });
 }
 function redpacket(pl, key) {

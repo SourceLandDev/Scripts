@@ -35,7 +35,7 @@ ll.registerPlugin("Bazaar", "集市", [2, 0, 6]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
-const serviceCharge = config.init("serviceCharge", 0.02);
+const serviceCharge = config.init("serviceCharge", 0.03125);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -62,8 +62,6 @@ const eco = (() => {
                 get: (pl) => pl.getTotalExperience(),
                 name: "经验值",
             };
-        default:
-            throw "配置项异常！";
     }
 })();
 config.close();
@@ -256,12 +254,8 @@ function browseItems(pl) {
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
-        switch (arg) {
-            case 0:
-                return itemsManagement(pl);
-            default:
-                return itemBuy(pl, realItems[arg - 1]);
-        }
+        if (arg <= 0) return itemsManagement(pl);
+        itemBuy(pl, realItems[arg - 1]);
     });
 }
 function browseOffers(pl) {
@@ -286,12 +280,8 @@ function browseOffers(pl) {
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
-        switch (arg) {
-            case 0:
-                return offersManagement(pl);
-            default:
-                return offerProcess(pl, realOffers[arg - 1]);
-        }
+        if (arg <= 0) return offersManagement(pl);
+        offerProcess(pl, realOffers[arg - 1]);
     });
 }
 function itemsManagement(pl) {
@@ -306,12 +296,8 @@ function itemsManagement(pl) {
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return browseItems(pl);
-        switch (arg) {
-            case 0:
-                return itemUpload(pl);
-            default:
-                return itemTakedown(pl, sellers[pl.xuid].items[arg - 1]);
-        }
+        if (arg <= 0) return itemUpload(pl);
+        itemTakedown(pl, sellers[pl.xuid].items[arg - 1]);
     });
 }
 function offersManagement(pl) {
@@ -333,12 +319,8 @@ function offersManagement(pl) {
     }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return browseOffers(pl);
-        switch (arg) {
-            case 0:
-                return offerCreate(pl);
-            default:
-                return offerWithdrawal(pl, sellers[pl.xuid].offers[arg - 1]);
-        }
+        if (arg <= 0) return offerCreate(pl);
+        offerWithdrawal(pl, sellers[pl.xuid].offers[arg - 1]);
     });
 }
 function itemBuy(pl, uuid) {
@@ -711,11 +693,21 @@ function itemTakedown(pl, uuid) {
                 pl.sendToast("集市", "§c物品下架失败：已下线");
                 return itemsManagement(pl);
             }
+            const money = eco.get(pl);
+            const condition = Math.floor(serviceCharge * money);
+            if (money < condition) {
+                pl.sendToast(
+                    "集市",
+                    `§c物品下架失败：余额不足（需要${condition}${eco.name}）`
+                );
+                return itemsManagement(pl);
+            }
             const sellers = db.get("sellers") ?? {};
             sellers[pl.xuid].items.splice(
                 sellers[pl.xuid].items.indexOf(uuid),
                 1
             );
+            eco.reduce(pl, condition);
             pl.giveItem(
                 mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt)),
                 nowItems[uuid].count

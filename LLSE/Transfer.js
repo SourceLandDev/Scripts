@@ -35,7 +35,7 @@ ll.registerPlugin("Transfer", "转账", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/Transfer/config.json");
 const command = config.init("command", "transfer");
-const rate = config.init("rate", 0.98);
+const rate = config.init("rate", 0.96875);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -62,8 +62,6 @@ const eco = (() => {
                 get: (pl) => pl.getCurrentExperience(),
                 name: "经验值",
             };
-        default:
-            throw "配置项异常！";
     }
 })();
 config.close();

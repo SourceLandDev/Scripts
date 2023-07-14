@@ -33,17 +33,42 @@ English:
 "use strict";
 ll.registerPlugin("DeathTax", "死亡税", [1, 0, 0]);
 
-const conf = new JsonConfigFile("plugins/DeathTax/config.json");
-const tax = conf.init("tax", { min: 0, max: 3 });
-conf.close();
+const config = new JsonConfigFile("plugins/DeathTax/config.json");
+const tax = config.init("tax", { min: 0, max: 3 });
+const currencyType = config.init("currencyType", "llmoney");
+const currencyName = config.init("currencyName", "元");
+const eco = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: (pl) => pl.getMoney(),
+                name: currencyName,
+            };
+        case "scoreboard":
+            const scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: (pl) => pl.getScore(scoreboard),
+                name: currencyName,
+            };
+        case "xplevel":
+            return {
+                add: (pl, money) => pl.addLevel(money),
+                reduce: (pl, money) => pl.reduceLevel(money),
+                get: (pl) => pl.getLevel(),
+                name: "级经验",
+            };
+    }
+})();
+config.close();
 mc.listen("onPlayerDie", (pl) => {
-    const level = pl.getLevel();
-    if (level <= 0) return;
-    const condition = Math.floor(tax.max + tax.max * level * 0.02);
+    const money = eco.get();
+    if (money <= 0) return;
+    const condition = Math.floor(tax.max + tax.max * money * (2 ^ -5));
     let reduce = Math.round(Math.random() * (tax.min - condition) + condition);
-    if (level < reduce) {
-        reduce = level;
-        pl.resetLevel();
-    } else pl.reduceLevel(reduce);
+    eco.reduce(reduce);
     pl.tell(`扣除${reduce}级经验`);
 });
