@@ -65,10 +65,10 @@ const eco = (() => {
 })();
 config.close();
 mc.listen("onPlayerDie", (pl) => {
-    const money = eco.get();
+    const money = eco.get(pl);
     if (money <= 0) return;
-    const condition = Math.floor(tax.max + tax.max * money * (2 ^ -5));
+    const condition = Math.floor(tax.max + tax.max * money * 2 ** -5);
     let reduce = Math.round(Math.random() * (tax.min - condition) + condition);
-    eco.reduce(reduce);
+    eco.reduce(pl, reduce);
     pl.tell(`扣除${reduce}级经验`);
 });

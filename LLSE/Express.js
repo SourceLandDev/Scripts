@@ -104,7 +104,7 @@ function main(pl) {
         if (!args) return;
         const money = eco.get(pl);
         const condition = Math.floor(
-            serviceCharge.max + serviceCharge.max * money * (2 ^ -5)
+            serviceCharge.max + serviceCharge.max * money * 2 ** -5
         );
         if (money < condition) {
             pl.sendToast(
