@@ -33,10 +33,28 @@ English:
 "use strict";
 ll.registerPlugin("TPSWarn", "卡顿警告", [1, 0, 0]);
 
+const config = new JsonConfigFile("plugins/TPSWarn/config.json");
+const lowest = config.init("lowest", 13);
+config.close();
+let isLow = false;
 setInterval(() => {
     const tps = ll.hasExported("TPSAPI", "GetRealTPS")
         ? ll.imports("TPSAPI", "GetRealTPS")()
         : 20;
-    if (tps > 13) return;
+    if (tps > lowest) {
+        if (isLow) {
+            sendToGroup(`负载已恢复（*${100 - tps * 5}*%）`);
+            isLow = false;
+        }
+        return;
+    }
     fastLog(`当前TPS：${tps}`);
+    if (!isLow) {
+        sendToGroup(`负载过高（*${100 - tps * 5}%*）！`);
+        isLow = true;
+    }
 }, 1000);
+function sendToGroup(msg) {
+    if (ll.hasExported("MessageSync", "SendMessage"))
+        ll.imports("MessageSync", "SendMessage")(msg);
+}
