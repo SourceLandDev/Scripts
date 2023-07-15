@@ -39,7 +39,9 @@ mc.world.beforeEvents.chatSend.subscribe((arg) => {
     let hours = time.getHours();
     hours = hours + 8 > 24 ? hours - 16 : hours + 8;
     const minutes = time.getMinutes();
-    const timeStr = `${hours}:${minutes < 10 ? 0 : ""}${minutes}`;
+    const timeStr = `${hours < 10 ? 0 : ""}${hours}:${
+        minutes < 10 ? 0 : ""
+    }${minutes}`;
     mc.world.sendMessage(`${timeStr} ${arg.sender.name}：${arg.message}`);
 });
 mc.world.afterEvents.chatSend.subscribe((arg) => {
@@ -47,7 +49,9 @@ mc.world.afterEvents.chatSend.subscribe((arg) => {
     let hours = time.getHours();
     hours = hours + 8 > 24 ? hours - 16 : hours + 8;
     const minutes = time.getMinutes();
-    const timeStr = `${hours}:${minutes < 10 ? 0 : ""}${minutes}`;
+    const timeStr = `${hours < 10 ? 0 : ""}${hours}:${
+        minutes < 10 ? 0 : ""
+    }${minutes}`;
     arg.sender.nameTag = `${timeStr} ${arg.message.replace("\n", " ")}\n${
         arg.sender.nameTag
     }`;

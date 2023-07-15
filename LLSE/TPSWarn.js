@@ -43,14 +43,16 @@ setInterval(() => {
         : 20;
     if (tps > lowest) {
         if (isLow) {
-            sendToGroup(`负载已恢复（*${100 - tps * 5}*%）`);
+            sendToGroup(
+                `负载已恢复${tps < 20 ? `（*${100 - tps * 5}%*}）` : ""}`
+            );
             isLow = false;
         }
         return;
     }
     fastLog(`当前TPS：${tps}`);
     if (!isLow) {
-        sendToGroup(`负载过高（*${100 - tps * 5}%*）！`);
+        sendToGroup(`负载过高！（*${100 - tps * 5}%*）`);
         isLow = true;
     }
 }, 1000);
