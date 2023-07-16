@@ -99,7 +99,7 @@ function main(pl, def) {
                 return main(pl, args[0]);
             }
             for (const reg of regex) {
-                if (args[0].test(reg.pattern)) {
+                if (new RegExp(reg.pattern).test(args[0])) {
                     pl.sendToast("重命名", `§c修改失败：${reg.message}`);
                     return main(pl, args[0]);
                 }
@@ -108,9 +108,10 @@ function main(pl, def) {
                 Math.random() * (serviceCharge.min - condition) + condition
             );
             eco.reduce(pl, reduce);
-            pl.sendToast("重命名", `修改成功（花费${reduce}${eco.name}）`);
             db.set(pl.xuid, args[0]);
             pl.rename(args[0]);
+            pl.sendToast("重命名", `修改成功（花费${reduce}${eco.name}）`);
+            mc.broadcast(`§e${pl.realName}重命名为${args[0]}）`);
         }
     );
 }
