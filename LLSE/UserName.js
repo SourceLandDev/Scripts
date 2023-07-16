@@ -64,6 +64,7 @@ const eco = (() => {
             };
     }
 })();
+const regex = config.init("regex", []);
 config.close();
 const db = new KVDatabase("plugins/UserName/data");
 const cmd = mc.newCommand(command, "打开重命名。", PermType.Any);
@@ -96,6 +97,12 @@ function main(pl, def) {
                     `§c修改失败：余额不足（需要${condition}${eco.name}）`
                 );
                 return main(pl, args[0]);
+            }
+            for (const reg of regex) {
+                if (args[0].test(reg.pattern)) {
+                    pl.sendToast("重命名", `§c修改失败：${reg.message}`);
+                    return main(pl, args[0]);
+                }
             }
             const reduce = Math.round(
                 Math.random() * (serviceCharge.min - condition) + condition
