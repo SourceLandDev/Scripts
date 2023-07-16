@@ -36,24 +36,25 @@ ll.registerPlugin("TPSWarn", "卡顿警告", [1, 0, 0]);
 const config = new JsonConfigFile("plugins/TPSWarn/config.json");
 const lowest = config.init("lowest", 13);
 config.close();
-let isLow = false;
+let msgId = 0;
 setInterval(() => {
     const tps = ll.hasExported("TPSAPI", "GetRealTPS")
         ? ll.imports("TPSAPI", "GetRealTPS")()
         : 20;
     if (tps > lowest) {
-        if (isLow) {
+        if (msgId) {
             sendToGroup(
-                `负载已恢复${tps < 20 ? `（*${100 - tps * 5}%*）` : ""}`
+                `负载已恢复${tps < 20 ? `（*${100 - tps * 5}%*）` : ""}`,
+                -2,
+                msgId
             );
-            isLow = false;
+            msgId = 0;
         }
         return;
     }
     fastLog(`当前TPS：${tps}`);
-    if (!isLow) {
-        sendToGroup(`负载过高！（*${100 - tps * 5}%*）`);
-        isLow = true;
+    if (!msgId) {
+        msgId = sendToGroup(`负载过高！（*${100 - tps * 5}%*）`, -2);
     }
 }, 1000);
 function sendToGroup(msg) {
