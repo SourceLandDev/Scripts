@@ -54,6 +54,12 @@ for (const command in commands) {
 }
 mc.listen("onUseItem", (pl, it) => {
     if (it.type in menuItem) {
+        for (const command in commands) {
+            if (commands[command] == menuItem[it.type]) {
+                pl.runcmd(command);
+                return false;
+            }
+        }
         menu(pl, menuItem[it.type]);
         return false;
     }
