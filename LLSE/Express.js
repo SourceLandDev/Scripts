@@ -77,8 +77,11 @@ function main(pl) {
     const plsxuid = [];
     for (const plget of mc.getOnlinePlayers())
         if (plget.xuid != pl.xuid) {
-            plnms.push(plget.realName);
             plsxuid.push(plget.xuid);
+            let name = plget.realName;
+            if (ll.hasExported("UserName", "Get"))
+                name = ll.imports("UserName", "Get")(plget);
+            plnms.push(name);
         }
     if (plnms.length <= 0)
         return pl.sendToast("物流", "§c送达失败：暂无可送达用户");
@@ -146,10 +149,14 @@ function main(pl) {
         }
         if (sendItems.length <= 0) return;
         eco.reduce(pl, reduce);
-        pl.tell(
-            `向${pl1.realName}发送了以下物品（花费${reduce}${eco.name}）：`
-        );
-        pl1.tell(`${pl.realName}向您发送了以下物品：`);
+        let toName = pl1.realName;
+        if (ll.hasExported("UserName", "Get"))
+            toName = ll.imports("UserName", "Get")(pl1);
+        pl.tell(`向${toName}发送了以下物品（花费${reduce}${eco.name}）：`);
+        let name = pl.realName;
+        if (ll.hasExported("UserName", "Get"))
+            name = ll.imports("UserName", "Get")(pl);
+        pl1.tell(`${name}向您发送了以下物品：`);
         for (const item of sendItems) {
             pl.tell(`${item.name}§r*${item.count}`);
             pl1.tell(`${item.name}§r*${item.count}`);

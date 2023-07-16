@@ -66,9 +66,8 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     }
     return re;
 });
-function sendInit(xuid) {
-    if (db.get(xuid)) return;
-    const pl = mc.getPlayer(xuid);
+function sendInit(pl) {
+    if (db.get(pl.xuid)) return;
     pl.sendForm(
         mc
             .newSimpleForm()
@@ -78,7 +77,7 @@ function sendInit(xuid) {
             .addButton("经典空岛", "textures/ui/sword")
             .addButton("与在线用户组队", "textures/ui/FriendsIcon"),
         (pl, arg) => {
-            if (arg == null) return sendInit(xuid);
+            if (arg == null) return sendInit(pl);
             switch (arg) {
                 case 0: {
                     pl.tell("您选择了「经典单方块」\n正在为您分配，请稍候……");
@@ -94,7 +93,7 @@ function sendInit(xuid) {
                             clearInterval(timerid);
                         else pl.teleport(x, y + 1, z, 0);
                     }, 50);
-                    db.set(xuid, {
+                    db.set(pl.xuid, {
                         version: "classic",
                         pos: { x: x, y: y, z: z },
                     });
@@ -133,23 +132,26 @@ function sendInit(xuid) {
                     }
                     if (xuids.length <= 0) {
                         pl.tell("§c暂无可组队用户");
-                        return sendInit(xuid);
+                        return sendInit(pl);
                     }
                     const fm = mc.newCustomForm();
                     fm.setTitle("与在线用户组队");
                     fm.addDropdown("用户", options);
                     pl.sendForm(fm, (pl, args) => {
-                        if (!args) return sendInit(xuid);
+                        if (!args) return sendInit(pl);
                         const pl1 = mc.getPlayer(xuids[args[0]]);
                         if (!pl1) {
                             pl.tell(
                                 `§c${data.xuid2name(xuids[args[0]])}已离线`
                             );
-                            return sendInit(xuid);
+                            return sendInit(pl);
                         }
+                        let name = pl.realName;
+                        if (ll.hasExported("UserName", "Get"))
+                            name = ll.imports("UserName", "Get")(pl);
                         pl1.sendModalForm(
                             "组队请求",
-                            `${pl.realName}请求与您组队`,
+                            `${name}请求与您组队`,
                             "同意",
                             "拒绝",
                             (pl1, arg) => {
@@ -158,7 +160,7 @@ function sendInit(xuid) {
                                     pl.tell(
                                         `§c与${pl1.realName}的组队请求被拒绝`
                                     );
-                                    return sendInit(xuid);
+                                    return sendInit(pl);
                                 }
                                 const d2 = db.get(pl1.xuid);
                                 pl.setRespawnPosition(
@@ -173,7 +175,10 @@ function sendInit(xuid) {
                                     d2.pos.z,
                                     0
                                 );
-                                db.set(xuid, { version: "team", pos: d2.pos });
+                                db.set(pl.xuid, {
+                                    version: "team",
+                                    pos: d2.pos,
+                                });
                                 pl.tell(`与${pl1.realName}组队成功`);
                             }
                         );

@@ -1,6 +1,6 @@
 /*
 English:
-    Transfer
+    UserName
     Copyright (C) 2023  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    转账
+    用户名
     版权所有 © 2023  星梦喵吖 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,11 +31,11 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Transfer", "转账", [1, 0, 0]);
+ll.registerPlugin("UserName", "用户名", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins/Transfer/config.json");
-const command = config.init("command", "transfer");
-const rate = config.init("rate", 0.96875);
+const config = new JsonConfigFile("plugins/UserName/config.json");
+const command = config.init("command", "rename");
+const serviceCharge = config.init("serviceCharge", { min: 0, max: 3 });
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -55,69 +55,56 @@ const eco = (() => {
                 get: (pl) => pl.getScore(scoreboard),
                 name: currencyName,
             };
-        case "currexp":
+        case "xplevel":
             return {
-                add: (pl, money) => pl.addExperience(money),
-                reduce: (pl, money) => pl.reduceExperience(money),
-                get: (pl) => pl.getCurrentExperience(),
-                name: "经验值",
+                add: (pl, money) => pl.addLevel(money),
+                reduce: (pl, money) => pl.reduceLevel(money),
+                get: (pl) => pl.getLevel(),
+                name: "级经验",
             };
     }
 })();
 config.close();
-const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);
+const db = new KVDatabase("plugins/UserName/data");
+const cmd = mc.newCommand(command, "打开重命名。", PermType.Any);
 cmd.overload();
 cmd.setCallback((_cmd, ori, out, _res) => {
     if (!ori.player) return out.error("commands.generic.noTargetMatch");
     main(ori.player);
 });
 cmd.setup();
-function main(pl) {
-    const money = eco.get(pl);
-    if (money <= 0) return pl.sendToast("经济", "§c转账失败：余额不足");
-    const plnms = [];
-    const plxuid = [];
-    for (const pl1 of mc.getOnlinePlayers())
-        if (pl1.xuid != pl.xuid) {
-            plxuid.push(pl1.xuid);
-            let name = pl1.realName;
-            if (ll.hasExported("UserName", "Get"))
-                name = ll.imports("UserName", "Get")(pl1);
-            plnms.push(name);
-        }
-    if (plnms.length <= 0)
-        return pl.sendToast("经济", "§c转账失败：暂无可转账用户");
+mc.listen("onPreJoin", (pl) => {
+    const name = db.get(pl.xuid);
+    if (!name) return;
+    pl.rename(name);
+});
+function main(pl, def) {
     pl.sendForm(
         mc
             .newCustomForm()
-            .setTitle("转账菜单")
-            .addDropdown("目标", plnms)
-            .addSlider("数额", 1, money)
-            .addLabel(`当前汇率：${rate * 100}％`),
+            .setTitle("重命名")
+            .addInput("名称", "字符串", def ?? db.get(pl.xuid) ?? pl.realName),
         (pl, args) => {
             if (!args) return;
-            const plto = mc.getPlayer(plxuid[args[0]]);
-            if (!plto)
-                return pl.sendToast(
-                    "经济",
-                    `§c转账失败：${plnms[args[0]]}已离线`
-                );
-            if (args[1] > eco.get(pl))
-                return pl.sendToast("经济", "§c转账失败：余额不足");
-            eco.reduce(pl, args[1]);
-            const rlv = Math.round(args[1] * rate);
-            eco.add(plto, rlv);
-            let toName = plto.realName;
-            if (ll.hasExported("UserName", "Get"))
-                toName = ll.imports("UserName", "Get")(plto);
-            pl.sendToast(
-                "经济",
-                `转账成功：向${toName}转账${args[1]}${eco.name}`
+            const money = eco.get(pl);
+            const condition = Math.floor(
+                serviceCharge.max + serviceCharge.max * money * 2 ** -5
             );
-            let name = pl.realName;
-            if (ll.hasExported("UserName", "Get"))
-                name = ll.imports("UserName", "Get")(pl);
-            plto.sendToast("经济", `${name}向您转账${rlv}${eco.name}`);
+            if (money < condition) {
+                pl.sendToast(
+                    "重命名",
+                    `§c修改失败：余额不足（需要${condition}${eco.name}）`
+                );
+                return main(pl, args[0]);
+            }
+            const reduce = Math.round(
+                Math.random() * (serviceCharge.min - condition) + condition
+            );
+            eco.reduce(pl, reduce);
+            pl.sendToast("重命名", `修改成功（花费${reduce}${eco.name}）`);
+            db.set(pl.xuid, args[0]);
+            pl.rename(args[0]);
         }
     );
 }
+ll.exports((pl) => db.get(pl.xuid) ?? pl.realName, "UserName", "Get");

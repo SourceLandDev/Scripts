@@ -61,7 +61,7 @@ mc.listen("onJoin", (pl) => {
                 "是",
                 (pl, arg) => {
                     if (ll.hasExported("BlockIsland", "sendInit"))
-                        ll.imports("BlockIsland", "sendInit")(pl.xuid);
+                        ll.imports("BlockIsland", "sendInit")(pl);
                     if (arg) return;
                     const msg = `欢迎*${pl.realName}*加入了我们！`;
                     for (const player of mc.getOnlinePlayers()) {
