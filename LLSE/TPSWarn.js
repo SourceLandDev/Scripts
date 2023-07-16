@@ -44,7 +44,7 @@ setInterval(() => {
     if (tps > lowest) {
         if (isLow) {
             sendToGroup(
-                `负载已恢复${tps < 20 ? `（*${100 - tps * 5}%*}）` : ""}`
+                `负载已恢复${tps < 20 ? `（*${100 - tps * 5}%*）` : ""}`
             );
             isLow = false;
         }
