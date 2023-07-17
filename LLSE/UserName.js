@@ -77,7 +77,7 @@ cmd.setup();
 mc.listen("onPreJoin", (pl) => {
     const name = db.get(pl.xuid);
     if (!name) return;
-    pl.rename(name);
+    setName(pl, name);
 });
 function main(pl, def) {
     pl.sendForm(
@@ -109,7 +109,7 @@ function main(pl, def) {
             );
             eco.reduce(pl, reduce);
             db.set(pl.xuid, args[0]);
-            pl.rename(args[0]);
+            setName(pl, args[0]);
             pl.sendToast("重命名", `修改成功（花费${reduce}${eco.name}）`);
             const msg = `§e${pl.realName}重命名为${args[0]}）`;
             mc.broadcast(msg);
@@ -117,5 +117,10 @@ function main(pl, def) {
                 ll.imports("MessageSync", "SendMessage")(msg, -2);
         }
     );
+}
+function setName(pl, name) {
+    NativeFunction.fromSymbol(
+        "?setName@Player@@UEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z"
+    ).call(pl.asPointer(), name);
 }
 ll.exports((pl) => db.get(pl.xuid) ?? pl.realName, "UserName", "Get");

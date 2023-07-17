@@ -35,7 +35,7 @@ ll.registerPlugin("ChainGather", "连锁采集", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/ChainGather/config.json");
 const defaultState = config.init("defaultState", false);
-const maxChain = config.init("maxChain", 64);
+const maxChain = config.init("maxChain", 16);
 const blockList = config.init("blockList", {
     "minecraft:wooden_pickaxe": {
         undefined: {
@@ -401,7 +401,7 @@ const paidCommand = config.init("paidCommand", "paidchaingather");
 config.close();
 const states = {};
 const paidStates = {};
-const destroyingBlocks = [];
+const destroyingBlocks = {};
 const cmd = mc.newCommand(command, "修改连锁采集状态。", PermType.Any);
 cmd.overload();
 cmd.setCallback((_cmd, ori, out, _res) => {
@@ -467,9 +467,8 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         }
     if (!available || (paidStates[pl.xuid] && price > 0 && eco.get(pl) < price))
         return;
-    destroyingBlocks.push(
-        `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
-    );
+    if (!(pl.xuid in destroyingBlocks)) destroyingBlocks[pl.xuid] = [];
+    destroyingBlocks[pl.xuid].push(bl.pos.toString());
     const playerPointer = pl.asPointer();
     for (
         let i = 0, j = 1;
@@ -481,7 +480,13 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         const z = i == 2 ? bl.pos.z + j : bl.pos.z;
         const nextBlock = mc.getBlock(x, y, z, bl.pos.dimid);
         const nextBlockPointer = nextBlock.asPointer();
-        if (destroyingBlocks.length > maxChain) break;
+        if (
+            pl.xuid in destroyingBlocks &&
+            destroyingBlocks[pl.xuid].length >= maxChain
+        ) {
+            delete destroyingBlocks[pl.xuid];
+            return;
+        }
         if (
             (ll.hasExported("landEX_GetHasPLandPermbyPos") &&
                 ll.imports("landEX_GetHasPLandPermbyPos")(
@@ -506,7 +511,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
                     bl.pos.dimid,
                     "DestroyBlock"
                 )) ||
-            destroyingBlocks.indexOf(`${x} ${y} ${z} ${bl.pos.dimid}`) >= 0 ||
+            destroyingBlocks[pl.xuid].indexOf(bl.pos.toString()) >= 0 ||
             nextBlock.type != bl.type ||
             nextBlock.tileData != bl.tileData ||
             !NativeFunction.fromSymbol(
@@ -514,25 +519,15 @@ mc.listen("onDestroyBlock", (pl, bl) => {
             ).call(playerPointer, nextBlockPointer)
         )
             continue;
-        const pointer = nextBlockPointer.offset(10);
+        const pointer = nextBlockPointer.offset(15);
         const cache = pointer.float;
-        const survivalModePointer = NativePointer.malloc(0);
-        NativeFunction.fromSymbol("??0SurvivalMode@@QEAA@AEAVPlayer@@@Z").call(
-            survivalModePointer.asRef(),
-            playerPointer
-        );
+        const survivalModePointer = playerPointer.offset(3696);
         pointer.float = 0;
         NativeFunction.fromSymbol(
             "?destroyBlock@SurvivalMode@@UEAA_NAEBVBlockPos@@E@Z"
-        ).call(survivalModePointer, nextBlockPointer, 0);
+        ).call(survivalModePointer, nextBlock.pos.asPointer(), 0);
         pointer.float = cache;
         if (price <= 0) continue;
         eco.reduce(pl, price);
     }
-    destroyingBlocks.splice(
-        destroyingBlocks.indexOf(
-            `${bl.pos.x} ${bl.pos.y} ${bl.pos.z} ${bl.pos.dimid}`
-        ),
-        1
-    );
 });

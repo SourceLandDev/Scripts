@@ -42,9 +42,10 @@ setInterval(() => {
         ? ll.imports("TPSAPI", "GetRealTPS")()
         : 20;
     if (tps > lowest) {
-        if (msgId) {
-            sendToGroup(
+        if (msgId && ll.hasExported("MessageSync", "SendMessage")) {
+            ll.imports("MessageSync", "SendMessage")(
                 `负载已恢复${tps < 20 ? `（*${100 - tps * 5}%*）` : ""}`,
+                -2,
                 msgId
             );
             msgId = 0;
@@ -52,11 +53,9 @@ setInterval(() => {
         return;
     }
     fastLog(`当前TPS：${tps}`);
-    if (!msgId) {
-        msgId = sendToGroup(`负载过高！（*${100 - tps * 5}%*）`);
-    }
+    if (!msgId && ll.hasExported("MessageSync", "SendMessage"))
+        msgId = ll.imports("MessageSync", "SendMessage")(
+            `负载过高！（*${100 - tps * 5}%*）`,
+            -2
+        );
 }, 1000);
-function sendToGroup(msg, id) {
-    if (ll.hasExported("MessageSync", "SendMessage"))
-        ll.imports("MessageSync", "SendMessage")(msg, -2, id);
-}
