@@ -69,7 +69,7 @@ mc.listen("onJoin", (pl) => {
                         player.sendToast(serverName, msg);
                     }
                     if (ll.hasExported("MessageSync", "SendMessage"))
-                        ll.imports("MessageSync", "SendMessage")(msg);
+                        ll.imports("MessageSync", "SendMessage")(msg, -2);
                 }
             );
         }

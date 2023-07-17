@@ -45,7 +45,6 @@ setInterval(() => {
         if (msgId) {
             sendToGroup(
                 `负载已恢复${tps < 20 ? `（*${100 - tps * 5}%*）` : ""}`,
-                -2,
                 msgId
             );
             msgId = 0;
@@ -54,10 +53,10 @@ setInterval(() => {
     }
     fastLog(`当前TPS：${tps}`);
     if (!msgId) {
-        msgId = sendToGroup(`负载过高！（*${100 - tps * 5}%*）`, -2);
+        msgId = sendToGroup(`负载过高！（*${100 - tps * 5}%*）`);
     }
 }, 1000);
-function sendToGroup(msg) {
+function sendToGroup(msg, id) {
     if (ll.hasExported("MessageSync", "SendMessage"))
-        ll.imports("MessageSync", "SendMessage")(msg);
+        ll.imports("MessageSync", "SendMessage")(msg, -2, id);
 }

@@ -111,7 +111,10 @@ function main(pl, def) {
             db.set(pl.xuid, args[0]);
             pl.rename(args[0]);
             pl.sendToast("重命名", `修改成功（花费${reduce}${eco.name}）`);
-            mc.broadcast(`§e${pl.realName}重命名为${args[0]}）`);
+            const msg = `§e${pl.realName}重命名为${args[0]}）`;
+            mc.broadcast(msg);
+            if (ll.hasExported("MessageSync", "SendMessage"))
+                ll.imports("MessageSync", "SendMessage")(msg, -2);
         }
     );
 }
