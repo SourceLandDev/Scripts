@@ -511,7 +511,8 @@ mc.listen("onDestroyBlock", (pl, bl) => {
                     bl.pos.dimid,
                     "DestroyBlock"
                 )) ||
-            destroyingBlocks[pl.xuid].indexOf(bl.pos.toString()) >= 0 ||
+            !(pl.xuid in destroyingBlocks) ||
+            destroyingBlocks[pl.xuid].indexOf(nextBlock.pos.toString()) >= 0 ||
             nextBlock.type != bl.type ||
             nextBlock.tileData != bl.tileData ||
             !NativeFunction.fromSymbol(
