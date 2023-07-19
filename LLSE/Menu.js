@@ -53,16 +53,9 @@ for (const command in commands) {
     cmd.setup();
 }
 mc.listen("onUseItem", (pl, it) => {
-    if (it.type in menuItem) {
-        for (const command in commands) {
-            if (commands[command] == menuItem[it.type]) {
-                pl.runcmd(command);
-                return false;
-            }
-        }
-        menu(pl, menuItem[it.type]);
-        return false;
-    }
+    if (!(it.type in menuItem)) return;
+    menu(pl, menuItem[it.type]);
+    return false;
 });
 function menu(pl, mu, link) {
     const menus = new JsonConfigFile(

@@ -69,6 +69,7 @@ mc.listen("onPlayerDie", (pl) => {
     if (money <= 0) return;
     const condition = Math.floor(tax.max + tax.max * money * 2 ** -5);
     let reduce = Math.round(Math.random() * (tax.min - condition) + condition);
+    if (reduce <= 0) return;
     eco.reduce(pl, reduce);
     pl.tell(`扣除${reduce}${eco.name}`);
 });

@@ -75,21 +75,30 @@ cmd.setCallback((_cmd, ori, out, _res) => {
 });
 cmd.setup();
 mc.listen("onPreJoin", (pl) => {
-    const name = db.get(pl.xuid);
-    if (!name) return;
-    setName(pl, name);
+    const nameData = db.get(pl.xuid);
+    if (!nameData) return;
+    setName(pl, nameData.name);
 });
 function main(pl, def) {
+    const nameData = db.get(pl.xuid);
     pl.sendForm(
         mc
             .newCustomForm()
             .setTitle("重命名")
-            .addInput("名称", "字符串", def ?? db.get(pl.xuid) ?? pl.realName),
+            .addInput(
+                "名称",
+                "字符串",
+                def ?? (nameData ? nameData.name : pl.realName)
+            ),
         (pl, args) => {
             if (!args) return;
             const money = eco.get(pl);
             const condition = Math.floor(
-                serviceCharge.max + serviceCharge.max * money * 2 ** -5
+                serviceCharge.max +
+                    serviceCharge.max *
+                        money *
+                        2 ** -5 *
+                        (nameData ? nameData.times : 0)
             );
             if (money < condition) {
                 pl.sendToast(
@@ -108,9 +117,15 @@ function main(pl, def) {
                 Math.random() * (serviceCharge.min - condition) + condition
             );
             eco.reduce(pl, reduce);
-            db.set(pl.xuid, args[0]);
+            db.set(pl.xuid, {
+                name: args[0],
+                times: (nameData ? nameData.times : 0) + 1,
+            });
             setName(pl, args[0]);
-            pl.sendToast("重命名", `修改成功（花费${reduce}${eco.name}）`);
+            pl.sendToast(
+                "重命名",
+                `修改成功${reduce > 0 ? `（花费${reduce}${eco.name}）` : ""}`
+            );
             const msg = `§e${pl.realName}重命名为${args[0]}）`;
             mc.broadcast(msg);
             if (ll.hasExported("MessageSync", "SendMessage"))
@@ -123,4 +138,11 @@ function setName(pl, name) {
         "?setName@Player@@UEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z"
     ).call(pl.asPointer(), name);
 }
-ll.exports((pl) => db.get(pl.xuid) ?? pl.realName, "UserName", "Get");
+ll.exports(
+    (pl) => {
+        const nameData = db.get(pl.xuid);
+        return nameData ? nameData.name : pl.realName;
+    },
+    "UserName",
+    "Get"
+);

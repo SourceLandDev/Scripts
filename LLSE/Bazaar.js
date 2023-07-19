@@ -404,7 +404,10 @@ function itemBuy(pl, uuid) {
             });
         db.set("sellers", sellers);
         db.set("items", nowItems);
-        pl.sendToast("集市", "物品购买成功");
+        pl.sendToast(
+            "集市",
+            `物品购买成功${cost > 0 ? `（花费${cost}${eco.name}）` : ""}`
+        );
         return browseItems(pl);
     });
 }
@@ -669,8 +672,11 @@ function offerCreate(pl, args = ["", "0", "", "", ""]) {
             const sellers = db.get("sellers") ?? {};
             sellers[pl.xuid].offers.push(uuid);
             db.set("sellers", sellers);
-            eco.reduce(pl, args[2] * args[3]);
-            pl.sendToast("集市", "报价创建成功");
+            eco.reduce(pl, cost);
+            pl.sendToast(
+                "集市",
+                `报价创建成功${cost > 0 ? `（花费${cost}${eco.name}）` : ""}`
+            );
             return offerCreate(pl);
         }
     );
@@ -715,7 +721,12 @@ function itemTakedown(pl, uuid) {
             delete nowItems[uuid];
             db.set("sellers", sellers);
             db.set("items", nowItems);
-            pl.sendToast("集市", "物品下架成功");
+            pl.sendToast(
+                "集市",
+                `物品下架成功${
+                    condition > 0 ? `（花费${condition}${eco.name}）` : ""
+                }`
+            );
             return itemsManagement(pl);
         }
     );

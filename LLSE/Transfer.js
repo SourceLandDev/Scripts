@@ -104,8 +104,9 @@ function main(pl) {
                 );
             if (args[1] > eco.get(pl))
                 return pl.sendToast("经济", "§c转账失败：余额不足");
-            eco.reduce(pl, args[1]);
             const rlv = Math.round(args[1] * rate);
+            if (rlv <= 0) return pl.sendToast("经济", "§c转账失败：数额过小");
+            eco.reduce(pl, args[1]);
             eco.add(plto, rlv);
             let toName = plto.realName;
             if (ll.hasExported("UserName", "Get"))

@@ -152,7 +152,11 @@ function main(pl) {
         let toName = pl1.realName;
         if (ll.hasExported("UserName", "Get"))
             toName = ll.imports("UserName", "Get")(pl1);
-        pl.tell(`向${toName}发送了以下物品（花费${reduce}${eco.name}）：`);
+        pl.tell(
+            `向${toName}发送了以下物品${
+                reduce > 0 ? `（花费${reduce}${eco.name}）` : ""
+            }：`
+        );
         let name = pl.realName;
         if (ll.hasExported("UserName", "Get"))
             name = ll.imports("UserName", "Get")(pl);
