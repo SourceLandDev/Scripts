@@ -36,7 +36,7 @@ mc.listen("onChat", (pl, msg) => {
     mc.broadcast(
         `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${
             time.m
-        } ${name}：${msg}`
+        } ${name}§r：${msg}`
     );
     const xuid = pl.xuid;
     if (!msgs[xuid]) msgs[xuid] = [];
