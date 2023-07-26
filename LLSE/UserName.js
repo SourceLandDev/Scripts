@@ -126,10 +126,12 @@ function main(pl, def) {
                 "重命名",
                 `修改成功${reduce > 0 ? `（花费${reduce}${eco.name}）` : ""}`
             );
-            const msg = `§e${pl.realName}重命名为${args[0]}）`;
-            mc.broadcast(msg);
+            mc.broadcast(`§e${pl.realName}重命名为${args[0]}`);
             if (ll.hasExported("MessageSync", "SendMessage"))
-                ll.imports("MessageSync", "SendMessage")(msg, -2);
+                ll.imports("MessageSync", "SendMessage")(
+                    `*${pl.realName}*重命名为*${args[0]}*`,
+                    -2
+                );
         }
     );
 }
