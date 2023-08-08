@@ -63,13 +63,18 @@ mc.listen("onJoin", (pl) => {
                     if (ll.hasExported("BlockIsland", "sendInit"))
                         ll.imports("BlockIsland", "sendInit")(pl);
                     if (arg) return;
-                    const msg = `欢迎*${pl.realName}*加入了我们！`;
                     for (const player of mc.getOnlinePlayers()) {
                         if (player.xuid == pl.xuid) continue;
-                        player.sendToast(serverName, msg);
+                        player.sendToast(
+                            serverName,
+                            `欢迎${pl.realName}加入了我们！`
+                        );
                     }
                     if (ll.hasExported("MessageSync", "SendMessage"))
-                        ll.imports("MessageSync", "SendMessage")(msg, -2);
+                        ll.imports("MessageSync", "SendMessage")(
+                            `欢迎*${pl.realName}*加入了我们！`,
+                            -2
+                        );
                 }
             );
         }
