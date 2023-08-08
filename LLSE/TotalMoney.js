@@ -42,9 +42,9 @@ mc.listen("onExperienceAdd", (pl, exp) => {
 });
 ll.exports(
     () => {
-        let total;
+        let total = 0;
         for (const xuid of db.listKey()) total += db.get(xuid);
-        return total;
+        return total < 1 ? 1 : total;
     },
     "TotalMoney",
     "Get"
