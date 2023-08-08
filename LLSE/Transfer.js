@@ -93,7 +93,13 @@ function main(pl) {
             .setTitle("转账菜单")
             .addDropdown("目标", plnms)
             .addSlider("数额", 1, money)
-            .addLabel(`当前汇率：${rate * 100}％`),
+            .addLabel(
+                `当前汇率：${
+                    (ll.hasExported("TotalMoney", "Get")
+                        ? 1 - ll.imports("TotalMoney", "Get")() * 1e-5
+                        : rate) * 100
+                }％`
+            ),
         (pl, args) => {
             if (!args) return;
             const plto = mc.getPlayer(plxuid[args[0]]);
@@ -104,7 +110,12 @@ function main(pl) {
                 );
             if (args[1] > eco.get(pl))
                 return pl.sendToast("经济", "§c转账失败：余额不足");
-            const rlv = Math.round(args[1] * rate);
+            const rlv = Math.round(
+                args[1] *
+                    (ll.hasExported("TotalMoney", "Get")
+                        ? 1 - ll.imports("TotalMoney", "Get")() * 1e-5
+                        : rate)
+            );
             if (rlv <= 0) return pl.sendToast("经济", "§c转账失败：数额过小");
             eco.reduce(pl, args[1]);
             eco.add(plto, rlv);

@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 6]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 7]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -185,7 +185,14 @@ mc.listen("onJoin", (pl) => {
             );
         }
         if (ut.price) {
-            const get = Math.round(ut.price * ut.count * (1 - serviceCharge));
+            const get = Math.round(
+                ut.price *
+                    ut.count *
+                    (1 -
+                        (ll.hasExported("TotalMoney", "Get")
+                            ? ll.imports("TotalMoney", "Get")() * 1e-5
+                            : serviceCharge))
+            );
             eco.add(pl, get);
             pl.sendToast("集市", `物品被购买（您获得了${get}${eco.name}）`);
         }
@@ -329,7 +336,7 @@ function itemBuy(pl, uuid) {
         pl.sendToast("集市", "§c物品购买失败：已下线");
         return browseItems(pl);
     }
-    let canBuyMax = Math.round(eco.get(pl) / items[uuid].price);
+    let canBuyMax = Math.floor(eco.get(pl) / items[uuid].price);
     if (canBuyMax <= 0) {
         pl.sendToast("集市", "§c物品购买失败：余额不足");
         return browseItems(pl);
@@ -344,9 +351,8 @@ function itemBuy(pl, uuid) {
         .addLabel(`类型：${itemNBT.getTag("Name")}`)
         .addLabel(`单价：${items[uuid].price}`)
         .addLabel(`NBT：${items[uuid].snbt}`);
-    const canBuyMin = 1 / items[uuid].price;
-    if (canBuyMin < canBuyMax)
-        fm.addSlider("数量", Math.round(canBuyMin), Math.round(canBuyMax));
+    const canBuyMin = Math.ceil(1 / items[uuid].price);
+    if (canBuyMin < canBuyMax) fm.addSlider("数量", canBuyMin, canBuyMax);
     else fm.addLabel(`数量：${canBuyMax}`);
     const tag = itemNBT.getTag("tag");
     const enchData = tag ? tag.getData("ench") : undefined;
@@ -390,7 +396,14 @@ function itemBuy(pl, uuid) {
         pl.giveItem(mc.newItem(itemNBT), num);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
-            const get = Math.round(cost * (1 - serviceCharge));
+            const get = Math.round(
+                num *
+                    price *
+                    (1 -
+                        (ll.hasExported("TotalMoney", "Get")
+                            ? ll.imports("TotalMoney", "Get")() * 1e-5
+                            : serviceCharge))
+            );
             eco.add(sellerObj, get);
             sellerObj.sendToast(
                 "集市",
@@ -400,7 +413,6 @@ function itemBuy(pl, uuid) {
             sellers[seller].unprocessedTransactions.push({
                 price: price,
                 count: num,
-                serviceCharge: serviceCharge,
             });
         db.set("sellers", sellers);
         db.set("items", nowItems);
@@ -441,7 +453,13 @@ function offerProcess(pl, uuid) {
         .setTitle("报价处理")
         .addLabel(`类型：${offers[uuid].type}`)
         .addLabel(`单价：${offers[uuid].price}/个`)
-        .addLabel(`税率：${serviceCharge * 100}％`);
+        .addLabel(
+            `税率：${
+                (ll.hasExported("TotalMoney", "Get")
+                    ? ll.imports("TotalMoney", "Get")() * 1e-5
+                    : serviceCharge) * 100
+            }％`
+        );
     if (itemCount > 1) fm.addSlider("数量", 1, itemCount);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
@@ -466,9 +484,6 @@ function offerProcess(pl, uuid) {
             pl.sendToast("集市", "§c报价处理失败：物品不足");
             return browseOffers(pl);
         }
-        const get = Math.round(
-            num * nowOffers[uuid].price * (1 - serviceCharge)
-        );
         const seller = nowOffers[uuid].seller;
         const sellers = db.get("sellers") ?? {};
         if (nowOffers[uuid].count <= num) {
@@ -489,6 +504,14 @@ function offerProcess(pl, uuid) {
             else invItem.setNull();
             pl.refreshItems();
         }
+        const get = Math.round(
+            num *
+                nowOffers[uuid].price *
+                (1 -
+                    (ll.hasExported("TotalMoney", "Get")
+                        ? ll.imports("TotalMoney", "Get")() * 1e-5
+                        : serviceCharge))
+        );
         eco.add(pl, get);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
@@ -505,7 +528,6 @@ function offerProcess(pl, uuid) {
                     ench: offers[uuid].ench,
                 },
                 count: num,
-                serviceCharge: serviceCharge,
             });
         db.set("sellers", sellers);
         db.set("offers", nowOffers);
@@ -558,7 +580,6 @@ function itemUpload(pl, args = [0, "", 1]) {
         .addInput("价格", "正实型", args[1]);
     if (max < 2) fm.addLabel("数量：1");
     else fm.addSlider("数量", 1, max, 1, args[2]);
-    fm.addLabel(`税率：${serviceCharge * 100}％`);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemsManagement(pl);
         if (isNaN(args[1]) || args[1] < 0) {
@@ -700,7 +721,12 @@ function itemTakedown(pl, uuid) {
                 return itemsManagement(pl);
             }
             const money = eco.get(pl);
-            const condition = Math.floor(serviceCharge * money);
+            const condition = Math.round(
+                money *
+                    (ll.hasExported("TotalMoney", "Get")
+                        ? ll.imports("TotalMoney", "Get")() * 1e-5
+                        : serviceCharge)
+            );
             if (money < condition) {
                 pl.sendToast(
                     "集市",
@@ -739,7 +765,11 @@ function offerWithdrawal(pl, uuid) {
     }
     pl.sendModalForm(
         "撤回报价",
-        "是否撤回本报价",
+        `是否撤回本报价\n税率：${
+            (ll.hasExported("TotalMoney", "Get")
+                ? ll.imports("TotalMoney", "Get")() * 1e-5
+                : serviceCharge) * 100
+        }％`,
         "确定",
         "返回",
         (pl, arg) => {
@@ -754,7 +784,15 @@ function offerWithdrawal(pl, uuid) {
                 sellers[pl.xuid].offers.indexOf(uuid),
                 1
             );
-            eco.add(pl, nowOffers[uuid].price * nowOffers[uuid].count);
+            eco.add(
+                pl,
+                nowOffers[uuid].price *
+                    nowOffers[uuid].count *
+                    (1 -
+                        (ll.hasExported("TotalMoney", "Get")
+                            ? ll.imports("TotalMoney", "Get")() * 1e-5
+                            : serviceCharge))
+            );
             delete nowOffers[uuid];
             db.set("sellers", sellers);
             db.set("offers", nowOffers);
