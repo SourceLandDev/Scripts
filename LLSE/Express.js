@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Express", "物流", [1, 0, 0]);
+ll.registerPlugin("Express", "物流", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Express/config.json");
 const command = config.init("command", "express");

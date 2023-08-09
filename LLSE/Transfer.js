@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Transfer", "转账", [1, 0, 0]);
+ll.registerPlugin("Transfer", "转账", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Transfer/config.json");
 const command = config.init("command", "transfer");

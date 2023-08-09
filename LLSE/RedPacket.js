@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("RedPacket", "红包", [1, 0, 0]);
+ll.registerPlugin("RedPacket", "红包", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/RedPacket/config.json");
 const command = config.init("command", "redpacket");
@@ -77,6 +77,9 @@ function main(pl) {
     const keys = db.listKey();
     for (const key of keys) {
         const rpdata = db.get(key);
+        let name = data.xuid2name(rpdata.sender);
+        if (ll.hasExported("UserName", "GetFromXuid"))
+            name = ll.imports("UserName", "GetFromXuid")(rpdata.sender);
         fm.addButton(
             `${
                 rpdata.count > Object.keys(rpdata.recipient).length
@@ -86,7 +89,7 @@ function main(pl) {
                     : "§c（已领完）"
             }${
                 rpdata.msg ? `信息：${rpdata.msg}` : `发送时间：${rpdata.time}`
-            }\n发送者：${data.xuid2name(rpdata.sender)}`
+            }\n发送者：${name}`
         );
     }
     pl.sendForm(fm, (pl, arg) => {
@@ -101,6 +104,9 @@ function main(pl) {
 }
 function redpacket(pl, key) {
     const rpdata = db.get(key);
+    let name = data.xuid2name(rpdata.sender);
+    if (ll.hasExported("UserName", "GetFromXuid"))
+        name = ll.imports("UserName", "GetFromXuid")(rpdata.sender);
     if (
         pl.xuid != rpdata.sender &&
         !(pl.xuid in rpdata.recipient) &&
@@ -111,18 +117,20 @@ function redpacket(pl, key) {
         eco.add(pl, rpdata.level);
         pl.sendToast(
             "经济",
-            `领取${data.xuid2name(rpdata.sender)}的红包${rpdata.msg}成功：获得${
-                rpdata.level
-            }${eco.name}`
+            `领取${name}的红包${rpdata.msg}成功：获得${rpdata.level}${eco.name}`
         );
     }
-    let text = `发送者：${data.xuid2name(rpdata.sender)}\n发送时间：${
-        rpdata.time
-    }\n单个数额：${rpdata.level}${eco.name}\n数量：${
-        Object.keys(rpdata.recipient).length
-    }/${rpdata.count}\n已领取用户：\n`;
-    for (const getter in rpdata.recipient)
-        text += `${rpdata.recipient[getter].time} ${data.xuid2name(getter)}\n`;
+    let text = `发送者：${name}\n发送时间：${rpdata.time}\n单个数额：${
+        rpdata.level
+    }${eco.name}\n数量：${Object.keys(rpdata.recipient).length}/${
+        rpdata.count
+    }\n已领取用户：\n`;
+    for (const getter in rpdata.recipient) {
+        let name = data.xuid2name(getter);
+        if (ll.hasExported("UserName", "GetFromXuid"))
+            name = ll.imports("UserName", "GetFromXuid")(getter);
+        text += `${rpdata.recipient[getter].time} ${name}\n`;
+    }
     pl.sendForm(
         mc
             .newSimpleForm()

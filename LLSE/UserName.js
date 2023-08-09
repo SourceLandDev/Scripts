@@ -150,3 +150,11 @@ ll.exports(
     "UserName",
     "Get"
 );
+ll.exports(
+    (xuid) => {
+        const nameData = db.get(xuid);
+        return nameData ? nameData.name : data.xuid2name(xuid);
+    },
+    "UserName",
+    "GetFromXuid"
+);
