@@ -105,11 +105,14 @@ function main(pl) {
     if (items.length <= 0) return pl.sendToast("物流", "§c送达失败：背包为空");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
+        let total = 0;
+        for (const num of args) total += num;
         const money = eco.get(pl);
         const condition = Math.floor(
             serviceCharge.max +
                 serviceCharge.max *
                     money *
+                    num *
                     (ll.hasExported("TotalMoney", "Get")
                         ? ll.imports("TotalMoney", "Get")() * 1e-5
                         : 2 ** -5)
