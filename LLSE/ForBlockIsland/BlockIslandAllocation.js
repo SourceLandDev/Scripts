@@ -35,11 +35,11 @@ ll.registerPlugin("BlockIslandAllocation", "岛屿分配系统", [1, 0, 0]);
 
 const db = new KVDatabase("plugins/BlockIslandAllocation/data");
 if (!db.get("spawn"))
-    db.set("spawn", { version: "spawn", pos: { x: 0, y: -64, z: 0 } });
+    db.set("spawn", { version: "spawn", pos: { x: 0, y: -(2 ** 6), z: 0 } });
 mc.listen("onPlaceBlock", (pl, bl) => {
     if (
-        (bl.pos.x < 512 && bl.pos.x > -512) ||
-        (bl.pos.z < 512 && bl.pos.z > -512)
+        (bl.pos.x < 2 ** 9 - 1 && bl.pos.x > -(2 ** 9)) ||
+        (bl.pos.z < 2 ** 9 - 1 && bl.pos.z > -(2 ** 9))
     ) {
         pl.tell("你不能操作这片区域");
         return false;
@@ -80,7 +80,7 @@ function sendInit(pl) {
                 case 0: {
                     pl.tell("您选择了「经典单方块」\n正在为您分配，请稍候……");
                     const x = returnPos(true);
-                    const y = randomInt(96, 288);
+                    const y = randomInt(2 ** 6 + 2 ** 5, 2 ** 8 + 2 ** 5);
                     const z = returnPos(false);
                     pl.setRespawnPosition(x, y + 1, z, 0);
                     const timerid = setInterval(() => {
@@ -196,12 +196,12 @@ function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 function returnPos(isX) {
-    let pos = randomInt(-65536, 65535);
+    let pos = randomInt(-(2 ** 16), 2 ** 16);
     for (const key of db.listKey()) {
         const dt = db.get(key);
         if (
             dt.version == "team" ||
-            Math.abs((isX ? dt.pos.x : dt.pos.z) - pos) > 512
+            Math.abs((isX ? dt.pos.x : dt.pos.z) - pos) > 2 ** 9
         )
             continue;
         pos = returnPos(isX);

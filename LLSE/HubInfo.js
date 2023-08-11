@@ -81,18 +81,18 @@ setInterval(() => {
         if (tps < 20)
             list[
                 `§${
-                    tps > 18
+                    tps > 6 * 3
                         ? "a"
-                        : tps > 14
+                        : tps > 7 * 2
                         ? "e"
-                        : tps > 9
+                        : tps > 3 * 3
                         ? "c"
                         : tps > 5
                         ? "4"
                         : 0
                 }负载`
             ] = 100 - tps * 5;
-        if (workingSet > 0) list["内存"] = workingSet / 1024 / 1024;
+        if (workingSet > 0) list["内存"] = workingSet / 2 ** 20;
         pl.setSidebar(" ", list);
     }
 }, 1000);

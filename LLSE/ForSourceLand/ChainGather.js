@@ -35,7 +35,7 @@ ll.registerPlugin("ChainGather", "连锁采集", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/ChainGather/config.json");
 const defaultState = config.init("defaultState", false);
-const maxChain = config.init("maxChain", 16);
+const maxChain = config.init("maxChain", 2 ** 4);
 const blockList = config.init("blockList", {
     "minecraft:wooden_pickaxe": {
         undefined: {

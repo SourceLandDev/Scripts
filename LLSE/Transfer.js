@@ -35,7 +35,7 @@ ll.registerPlugin("Transfer", "转账", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Transfer/config.json");
 const command = config.init("command", "transfer");
-const rate = config.init("rate", 0.96875);
+const rate = config.init("rate", 1 - 2 ** -5);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {

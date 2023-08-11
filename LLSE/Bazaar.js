@@ -35,7 +35,7 @@ ll.registerPlugin("Bazaar", "集市", [2, 0, 7]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
-const serviceCharge = config.init("serviceCharge", 0.03125);
+const serviceCharge = config.init("serviceCharge", 2 ** -5);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
