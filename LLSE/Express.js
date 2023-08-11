@@ -112,7 +112,7 @@ function main(pl) {
             serviceCharge.max +
                 serviceCharge.max *
                     money *
-                    total *
+                    Math.sqrt(total) *
                     (ll.hasExported("TotalMoney", "Get")
                         ? ll.imports("TotalMoney", "Get")() * 1e-5
                         : 2 ** -5)
