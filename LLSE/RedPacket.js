@@ -77,19 +77,10 @@ function main(pl) {
     const keys = db.listKey();
     for (const key of keys) {
         const rpdata = db.get(key);
-        let name = data.xuid2name(rpdata.sender);
-        if (ll.hasExported("UserName", "GetFromXuid"))
-            name = ll.imports("UserName", "GetFromXuid")(rpdata.sender);
         fm.addButton(
-            `${
-                rpdata.count > Object.keys(rpdata.recipient).length
-                    ? pl.xuid in rpdata.recipient
-                        ? "§e（已领过）"
-                        : "§a"
-                    : "§c（已领完）"
-            }${
-                rpdata.msg ? `信息：${rpdata.msg}` : `发送时间：${rpdata.time}`
-            }\n发送者：${name}`
+            `${pl.xuid in rpdata.recipient ? "§e（已领过）" : "§a"}${
+                rpdata.msg ?? ""
+            }\n${rpdata.level}${eco.name}/个 共${rpdata.count}个`
         );
     }
     pl.sendForm(fm, (pl, arg) => {
@@ -104,9 +95,6 @@ function main(pl) {
 }
 function redpacket(pl, key) {
     const rpdata = db.get(key);
-    let name = data.xuid2name(rpdata.sender);
-    if (ll.hasExported("UserName", "GetFromXuid"))
-        name = ll.imports("UserName", "GetFromXuid")(rpdata.sender);
     if (
         pl.xuid != rpdata.sender &&
         !(pl.xuid in rpdata.recipient) &&
@@ -117,27 +105,17 @@ function redpacket(pl, key) {
         eco.add(pl, rpdata.level);
         pl.sendToast(
             "经济",
-            `领取${name}的红包${rpdata.msg}成功：获得${rpdata.level}${eco.name}`
+            `领取红包${rpdata.msg}成功（获得${rpdata.level}${eco.name}）`
         );
     }
-    let text = `发送者：${name}\n发送时间：${rpdata.time}\n单个数额：${
-        rpdata.level
-    }${eco.name}\n数量：${Object.keys(rpdata.recipient).length}/${
-        rpdata.count
-    }\n已领取用户：\n`;
-    for (const getter in rpdata.recipient) {
-        let name = data.xuid2name(getter);
-        if (ll.hasExported("UserName", "GetFromXuid"))
-            name = ll.imports("UserName", "GetFromXuid")(getter);
-        text += `${rpdata.recipient[getter].time} ${name}\n`;
+    if (Object.keys(rpdata.recipient).length >= rpdata.count) {
+        for (const player of mc.getOnlinePlayers()) {
+            if (player.xuid == pl.xuid) continue;
+            player.tell(`§e红包${args[0] ? `《${args[0]}》` : ""}已被领完`);
+        }
+        db.delete(key);
     }
-    pl.sendForm(
-        mc
-            .newSimpleForm()
-            .setTitle(rpdata.msg || "红包")
-            .setContent(text),
-        main
-    );
+    main(pl);
 }
 function send(pl) {
     const money = eco.get(pl);
@@ -160,9 +138,16 @@ function send(pl) {
                 msg: args[0],
                 count: args[1],
                 level: args[2],
-                time: system.getTimeStr(),
                 recipient: {},
             });
+            for (const player of mc.getOnlinePlayers()) {
+                if (player.xuid == pl.xuid) continue;
+                player.tell(
+                    `§e红包${args[0] ? `《${args[0]}》` : ""} ${args[2]}${
+                        eco.name
+                    }/个 共${args[1]}个`
+                );
+            }
             pl.sendToast("经济", `红包${args[0]}发送成功`);
         }
     );

@@ -53,10 +53,10 @@ setInterval(() => {
     const workingSet = ll.hasExported("InfoAPI", "GetWorkingSet")
         ? ll.imports("InfoAPI", "GetWorkingSet")()
         : 0;
-    for (const pl of mc.getOnlinePlayers()) {
-        pl.removeSidebar();
-        if (!db.get(pl.xuid)) continue;
-        const dv = pl.getDevice();
+    for (const player of mc.getOnlinePlayers()) {
+        player.removeSidebar();
+        if (!db.get(player.xuid)) continue;
+        const dv = player.getDevice();
         const list = {};
         if (dv.lastPacketLoss > 0)
             list[`§${dv.lastPacketLoss > 0 ? "c" : "a"}丢包`] = Math.round(
@@ -93,6 +93,6 @@ setInterval(() => {
                 }负载`
             ] = 100 - tps * 5;
         if (workingSet > 0) list["内存"] = workingSet / 2 ** 20;
-        pl.setSidebar(" ", list);
+        player.setSidebar(" ", list);
     }
 }, 1000);

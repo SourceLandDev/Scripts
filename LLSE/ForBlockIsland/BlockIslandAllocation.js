@@ -56,10 +56,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         )
             continue;
         re = false;
-        let name = data.xuid2name(key);
-        if (ll.hasExported("UserName", "GetFromXuid"))
-            name = ll.imports("UserName", "GetFromXuid")(key);
-        pl.tell(`§c你不能破坏${pl.xuid == key ? "你自己" : name}的核心方块`, 4);
+        pl.tell("§c你不能破坏一个主要方块", 4);
         break;
     }
     return re;
@@ -142,13 +139,7 @@ function sendInit(pl) {
                         if (!args) return sendInit(pl);
                         const pl1 = mc.getPlayer(xuids[args[0]]);
                         if (!pl1) {
-                            let name = data.xuid2name(xuids[args[0]]);
-                            if (ll.hasExported("UserName", "GetFromXuid"))
-                                name = ll.imports(
-                                    "UserName",
-                                    "GetFromXuid"
-                                )(xuids[args[0]]);
-                            pl.tell(`§c${name}已离线`);
+                            pl.tell("§c玩家已离线");
                             return sendInit(pl);
                         }
                         let name = pl.realName;

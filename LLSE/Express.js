@@ -75,12 +75,12 @@ cmd.setup();
 function main(pl) {
     const plnms = [];
     const plsxuid = [];
-    for (const plget of mc.getOnlinePlayers())
-        if (plget.xuid != pl.xuid) {
-            plsxuid.push(plget.xuid);
-            let name = plget.realName;
+    for (const player of mc.getOnlinePlayers())
+        if (player.xuid != pl.xuid) {
+            plsxuid.push(player.xuid);
+            let name = player.realName;
             if (ll.hasExported("UserName", "Get"))
-                name = ll.imports("UserName", "Get")(plget);
+                name = ll.imports("UserName", "Get")(player);
             plnms.push(name);
         }
     if (plnms.length <= 0)
@@ -165,10 +165,7 @@ function main(pl) {
                 reduce > 0 ? `（花费${reduce}${eco.name}）` : ""
             }：`
         );
-        let name = pl.realName;
-        if (ll.hasExported("UserName", "Get"))
-            name = ll.imports("UserName", "Get")(pl);
-        pl1.tell(`${name}向您发送了以下物品：`);
+        pl1.tell(`您收到了以下物品：`);
         for (const item of sendItems) {
             pl.tell(`${item.name}§r*${item.count}`);
             pl1.tell(`${item.name}§r*${item.count}`);

@@ -128,7 +128,10 @@ function main(pl, def) {
                 "重命名",
                 `修改成功${reduce > 0 ? `（花费${reduce}${eco.name}）` : ""}`
             );
-            mc.broadcast(`§e${pl.realName}重命名为${args[0]}`);
+            for (const player of mc.getOnlinePlayers()) {
+                if (player.xuid == pl.xuid) continue;
+                player.tell(`§e${pl.realName}重命名为${args[0]}`);
+            }
             if (ll.hasExported("MessageSync", "SendMessage"))
                 ll.imports("MessageSync", "SendMessage")(
                     `*${pl.realName}*重命名为*${args[0]}*`,

@@ -77,12 +77,12 @@ function main(pl) {
     if (money <= 0) return pl.sendToast("经济", "§c转账失败：余额不足");
     const plnms = [];
     const plxuid = [];
-    for (const pl1 of mc.getOnlinePlayers())
-        if (pl1.xuid != pl.xuid) {
-            plxuid.push(pl1.xuid);
-            let name = pl1.realName;
+    for (const player of mc.getOnlinePlayers())
+        if (player.xuid != pl.xuid) {
+            plxuid.push(player.xuid);
+            let name = player.realName;
             if (ll.hasExported("UserName", "Get"))
-                name = ll.imports("UserName", "Get")(pl1);
+                name = ll.imports("UserName", "Get")(player);
             plnms.push(name);
         }
     if (plnms.length <= 0)
@@ -126,10 +126,7 @@ function main(pl) {
                 "经济",
                 `转账成功：向${toName}转账${args[1]}${eco.name}`
             );
-            let name = pl.realName;
-            if (ll.hasExported("UserName", "Get"))
-                name = ll.imports("UserName", "Get")(pl);
-            plto.sendToast("经济", `${name}向您转账${rlv}${eco.name}`);
+            plto.sendToast("经济", `您收到了${rlv}${eco.name}`);
         }
     );
 }
