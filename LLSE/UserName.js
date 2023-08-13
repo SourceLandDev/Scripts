@@ -94,13 +94,13 @@ function main(pl, def) {
             if (!args) return;
             const money = eco.get(pl);
             const condition = Math.floor(
-                (serviceCharge.max +
+                serviceCharge.max +
                     serviceCharge.max *
+                        (nameData ? nameData.times : 0) *
                         money *
                         (ll.hasExported("TotalMoney", "Get")
                             ? ll.imports("TotalMoney", "Get")() * 1e-5
-                            : 2 ** -5)) *
-                    (nameData ? nameData.times : 0)
+                            : 2 ** -5)
             );
             if (money < condition) {
                 pl.sendToast(

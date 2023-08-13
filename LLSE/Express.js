@@ -110,8 +110,8 @@ function main(pl) {
         const money = eco.get(pl);
         const condition = Math.floor(
             serviceCharge.max +
-                money *
-                    total ** (2 / 5) *
+                total ** (2 / 5) *
+                    money *
                     (ll.hasExported("TotalMoney", "Get")
                         ? ll.imports("TotalMoney", "Get")() * 1e-5
                         : 2 ** -5)
