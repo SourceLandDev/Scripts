@@ -47,8 +47,8 @@ cmd.setCallback((_cmd, ori, out, _res) => {
 });
 cmd.setup();
 setInterval(() => {
-    const tps = ll.hasExported("TPSAPI", "GetRealTPS")
-        ? ll.imports("TPSAPI", "GetRealTPS")()
+    const tps = ll.hasExported("TPSAPI", "GetCurrectTPS")
+        ? ll.imports("TPSAPI", "GetCurrectTPS")()
         : 20;
     const workingSet = ll.hasExported("InfoAPI", "GetWorkingSet")
         ? ll.imports("InfoAPI", "GetWorkingSet")()
