@@ -35,7 +35,6 @@ ll.registerPlugin("Bazaar", "集市", [2, 0, 7]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
-const serviceCharge = config.init("serviceCharge", 2 ** -5);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -185,13 +184,12 @@ mc.listen("onJoin", (pl) => {
             );
         }
         if (ut.price) {
+            let total = 0;
+            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
             const get = Math.round(
                 ut.price *
                     ut.count *
-                    (1 -
-                        (ll.hasExported("TotalMoney", "Get")
-                            ? ll.imports("TotalMoney", "Get")() * 1e-5
-                            : serviceCharge))
+                    (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
             );
             eco.add(pl, get);
             pl.sendToast("集市", `物品被购买（您获得了${get}${eco.name}）`);
@@ -396,13 +394,12 @@ function itemBuy(pl, uuid) {
         pl.giveItem(mc.newItem(itemNBT), num);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
+            let total = 0;
+            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
             const get = Math.round(
                 num *
                     price *
-                    (1 -
-                        (ll.hasExported("TotalMoney", "Get")
-                            ? ll.imports("TotalMoney", "Get")() * 1e-5
-                            : serviceCharge))
+                    (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
             );
             eco.add(sellerObj, get);
             sellerObj.sendToast(
@@ -448,18 +445,14 @@ function offerProcess(pl, uuid) {
     if (itemCount > offers[uuid].count) {
         itemCount = offers[uuid].count;
     }
+    let total = 0;
+    for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
     const fm = mc
         .newCustomForm()
         .setTitle("报价处理")
         .addLabel(`类型：${offers[uuid].type}`)
         .addLabel(`单价：${offers[uuid].price}/个`)
-        .addLabel(
-            `税率：${
-                (ll.hasExported("TotalMoney", "Get")
-                    ? ll.imports("TotalMoney", "Get")() * 1e-5
-                    : serviceCharge) * 100
-            }％`
-        );
+        .addLabel(`税率：${total / 10 ** Math.floor(Math.log10(total))}％`);
     if (itemCount > 1) fm.addSlider("数量", 1, itemCount);
     else fm.addLabel("数量：1");
     pl.sendForm(fm, (pl, args) => {
@@ -504,13 +497,12 @@ function offerProcess(pl, uuid) {
             else invItem.setNull();
             pl.refreshItems();
         }
+        let total = 0;
+        for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
         const get = Math.round(
             num *
                 nowOffers[uuid].price *
-                (1 -
-                    (ll.hasExported("TotalMoney", "Get")
-                        ? ll.imports("TotalMoney", "Get")() * 1e-5
-                        : serviceCharge))
+                (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
         );
         eco.add(pl, get);
         const sellerObj = mc.getPlayer(seller);
@@ -720,17 +712,15 @@ function itemTakedown(pl, uuid) {
                 pl.sendToast("集市", "§c物品下架失败：已下线");
                 return itemsManagement(pl);
             }
-            const money = eco.get(pl);
-            const condition = Math.round(
-                money *
-                    (ll.hasExported("TotalMoney", "Get")
-                        ? ll.imports("TotalMoney", "Get")() * 1e-5
-                        : serviceCharge)
+            let total = 0;
+            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
+            const cost = Math.round(
+                total / 10 ** Math.floor(Math.log10(total))
             );
-            if (money < condition) {
+            if (eco.get(pl) < cost) {
                 pl.sendToast(
                     "集市",
-                    `§c物品下架失败：余额不足（需要${condition}${eco.name}）`
+                    `§c物品下架失败：余额不足（需要${cost}${eco.name}）`
                 );
                 return itemsManagement(pl);
             }
@@ -739,7 +729,7 @@ function itemTakedown(pl, uuid) {
                 sellers[pl.xuid].items.indexOf(uuid),
                 1
             );
-            eco.reduce(pl, condition);
+            eco.reduce(pl, cost);
             pl.giveItem(
                 mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt)),
                 nowItems[uuid].count
@@ -749,9 +739,7 @@ function itemTakedown(pl, uuid) {
             db.set("items", nowItems);
             pl.sendToast(
                 "集市",
-                `物品下架成功${
-                    condition > 0 ? `（花费${condition}${eco.name}）` : ""
-                }`
+                `物品下架成功${cost > 0 ? `（花费${cost}${eco.name}）` : ""}`
             );
             return itemsManagement(pl);
         }
@@ -763,12 +751,12 @@ function offerWithdrawal(pl, uuid) {
         pl.sendToast("集市", "§c报价撤回失败：已下线");
         return offersManagement(pl);
     }
+    let total = 0;
+    for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
     pl.sendModalForm(
         "撤回报价",
         `是否撤回本报价\n税率：${
-            (ll.hasExported("TotalMoney", "Get")
-                ? ll.imports("TotalMoney", "Get")() * 1e-5
-                : serviceCharge) * 100
+            total / 10 ** Math.floor(Math.log10(total))
         }％`,
         "确定",
         "返回",
@@ -784,14 +772,15 @@ function offerWithdrawal(pl, uuid) {
                 sellers[pl.xuid].offers.indexOf(uuid),
                 1
             );
+            let total = 0;
+            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
             eco.add(
                 pl,
-                nowOffers[uuid].price *
-                    nowOffers[uuid].count *
-                    (1 -
-                        (ll.hasExported("TotalMoney", "Get")
-                            ? ll.imports("TotalMoney", "Get")() * 1e-5
-                            : serviceCharge))
+                Math.round(
+                    nowOffers[uuid].price *
+                        nowOffers[uuid].count *
+                        (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
+                )
             );
             delete nowOffers[uuid];
             db.set("sellers", sellers);

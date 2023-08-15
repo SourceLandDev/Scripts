@@ -92,20 +92,19 @@ function main(pl, def) {
             ),
         (pl, args) => {
             if (!args) return;
-            const money = eco.get(pl);
-            const condition = Math.floor(
-                serviceCharge.max +
-                    serviceCharge.max *
-                        (nameData ? nameData.times : 0) *
-                        money *
-                        (ll.hasExported("TotalMoney", "Get")
-                            ? ll.imports("TotalMoney", "Get")() * 1e-5
-                            : 2 ** -5)
-            );
-            if (money < condition) {
+            let total = 0;
+            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
+            const condition =
+                serviceCharge.max *
+                (1 +
+                    (nameData ? nameData.times : 0) *
+                        (total / 10 ** (Math.floor(Math.log10(total)) + 2)));
+            if (eco.get(pl) < condition) {
                 pl.sendToast(
                     "重命名",
-                    `§c修改失败：余额不足（需要${condition}${eco.name}）`
+                    `§c修改失败：余额不足（需要${Math.round(condition)}${
+                        eco.name
+                    }）`
                 );
                 return main(pl, args[0]);
             }

@@ -65,11 +65,13 @@ const eco = (() => {
 })();
 config.close();
 mc.listen("onPlayerDie", (pl) => {
-    const money = eco.get(pl);
-    if (money <= 0) return;
-    const condition = Math.floor(tax.max + tax.max * money * 2 ** -5);
+    let total = 0;
+    for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
+    const condition =
+        tax.max * (1 + total / 10 ** (Math.floor(Math.log10(total)) + 2));
     let reduce = Math.round(Math.random() * (tax.min - condition) + condition);
-    if (reduce <= 0) return;
+    const money = eco.get(pl);
+    if (reduce > money + 1) reduce = money + 1;
     eco.reduce(pl, reduce);
     pl.tell(`扣除${reduce}${eco.name}`);
 });

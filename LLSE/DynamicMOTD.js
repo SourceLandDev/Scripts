@@ -34,11 +34,11 @@ English:
 ll.registerPlugin("DynamicMOTD", "动态MOTD", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/DynamicMOTD/config.json");
-const interval = config.init("interval", 5);
+const interval = config.init("interval", 1);
 const motd = config.init("motd", []);
 config.close();
 let index = 0;
 setInterval(() => {
-    mc.setMotd(`${motd[index]}§r`);
+    mc.setMotd(motd[index]);
     index = index == motd.length - 1 ? 0 : index + 1;
-}, interval * 1000);
+}, interval * 5e3);

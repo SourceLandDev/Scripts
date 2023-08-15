@@ -105,21 +105,22 @@ function main(pl) {
     if (items.length <= 0) return pl.sendToast("物流", "§c送达失败：背包为空");
     pl.sendForm(fm, (pl, args) => {
         if (!args) return;
-        let total = 0;
-        for (const num of args) total += num;
-        const money = eco.get(pl);
-        const condition = Math.floor(
-            serviceCharge.max +
-                total ** (2 / 5) *
-                    money *
-                    (ll.hasExported("TotalMoney", "Get")
-                        ? ll.imports("TotalMoney", "Get")() * 1e-5
-                        : 2 ** -5)
-        );
-        if (money < condition) {
+        let totalNum = 0;
+        for (const num of args) totalNum += num;
+        let totalMoney = 0;
+        for (const pl of mc.getOnlinePlayers()) totalMoney += eco.get(pl);
+        const condition =
+            serviceCharge.max *
+            (1 +
+                totalNum *
+                    (totalMoney /
+                        10 ** (Math.floor(Math.log10(totalMoney)) + 2)));
+        if (eco.get(pl) < condition) {
             pl.sendToast(
                 "物流",
-                `§c送达失败：余额不足（需要${condition}${eco.name}）`
+                `§c送达失败：余额不足（需要${Math.round(condition)}${
+                    eco.name
+                }）`
             );
             return main(pl);
         }

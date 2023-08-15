@@ -35,7 +35,6 @@ ll.registerPlugin("HubInfo", "信息栏", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/HubInfo/config.json");
 const command = config.init("command", "hubinfo");
-const serverName = config.init("serverName", "");
 config.close();
 const db = new KVDatabase("plugins/HubInfo/data");
 const cmd = mc.newCommand(command, "修改信息栏状态。", PermType.Any);

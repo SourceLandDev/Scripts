@@ -132,59 +132,62 @@ function sendInit(pl) {
                         pl.tell("§c暂无可组队用户");
                         return sendInit(pl);
                     }
-                    const fm = mc.newCustomForm();
-                    fm.setTitle("与在线用户组队");
-                    fm.addDropdown("用户", options);
-                    pl.sendForm(fm, (pl, args) => {
-                        if (!args) return sendInit(pl);
-                        const pl1 = mc.getPlayer(xuids[args[0]]);
-                        if (!pl1) {
-                            pl.tell("§c玩家已离线");
-                            return sendInit(pl);
-                        }
-                        let name = pl.realName;
-                        if (ll.hasExported("UserName", "Get"))
-                            name = ll.imports("UserName", "Get")(pl);
-                        pl1.sendModalForm(
-                            "组队请求",
-                            `${name}请求与您组队`,
-                            "同意",
-                            "拒绝",
-                            (pl1, arg) => {
-                                if (!mc.getPlayer(pl.xuid)) return;
-                                if (!arg) {
-                                    pl.tell(
-                                        `§c与${pl1.realName}的组队请求被拒绝`
-                                    );
-                                    return sendInit(pl);
-                                }
-                                const d2 = db.get(pl1.xuid);
-                                pl.setRespawnPosition(
-                                    d2.pos.x,
-                                    d2.pos.y + 1,
-                                    d2.pos.z,
-                                    0
-                                );
-                                pl.teleport(
-                                    d2.pos.x,
-                                    d2.pos.y + 1,
-                                    d2.pos.z,
-                                    0
-                                );
-                                db.set(pl.xuid, {
-                                    version: "team",
-                                    pos: d2.pos,
-                                });
-                                pl.tell(`与${pl1.realName}组队成功`);
+                    pl.sendForm(
+                        mc
+                            .newCustomForm()
+                            .setTitle("与在线用户组队")
+                            .addDropdown("用户", options),
+                        (pl, args) => {
+                            if (!args) return sendInit(pl);
+                            const pl1 = mc.getPlayer(xuids[args[0]]);
+                            if (!pl1) {
+                                pl.tell("§c玩家已离线");
+                                return sendInit(pl);
                             }
-                        );
-                    });
+                            let name = pl.realName;
+                            if (ll.hasExported("UserName", "Get"))
+                                name = ll.imports("UserName", "Get")(pl);
+                            pl1.sendModalForm(
+                                "组队请求",
+                                `${name}请求与您组队`,
+                                "同意",
+                                "拒绝",
+                                (pl1, arg) => {
+                                    if (!mc.getPlayer(pl.xuid)) return;
+                                    if (!arg) {
+                                        pl.tell(
+                                            `§c与${pl1.realName}的组队请求被拒绝`
+                                        );
+                                        return sendInit(pl);
+                                    }
+                                    const d2 = db.get(pl1.xuid);
+                                    pl.setRespawnPosition(
+                                        d2.pos.x,
+                                        d2.pos.y + 1,
+                                        d2.pos.z,
+                                        0
+                                    );
+                                    pl.teleport(
+                                        d2.pos.x,
+                                        d2.pos.y + 1,
+                                        d2.pos.z,
+                                        0
+                                    );
+                                    db.set(pl.xuid, {
+                                        version: "team",
+                                        pos: d2.pos,
+                                    });
+                                    pl.tell(`与${pl1.realName}组队成功`);
+                                }
+                            );
+                        }
+                    );
             }
         }
     );
 }
 function randomInt(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.round(Math.random() * (max - min)) + min;
 }
 function returnPos(isX) {
     let pos = randomInt(-(2 ** 16), 2 ** 16);

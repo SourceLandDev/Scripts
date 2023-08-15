@@ -35,7 +35,6 @@ ll.registerPlugin("Transfer", "转账", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Transfer/config.json");
 const command = config.init("command", "transfer");
-const rate = config.init("rate", 1 - 2 ** -5);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -87,6 +86,8 @@ function main(pl) {
         }
     if (plnms.length <= 0)
         return pl.sendToast("经济", "§c转账失败：暂无可转账用户");
+    let total = 0;
+    for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
     pl.sendForm(
         mc
             .newCustomForm()
@@ -95,9 +96,7 @@ function main(pl) {
             .addSlider("数额", 1, money)
             .addLabel(
                 `当前汇率：${
-                    (ll.hasExported("TotalMoney", "Get")
-                        ? 1 - ll.imports("TotalMoney", "Get")() * 1e-5
-                        : rate) * 100
+                    100 - total / 10 ** Math.floor(Math.log10(total))
                 }％`
             ),
         (pl, args) => {
@@ -110,11 +109,11 @@ function main(pl) {
                 );
             if (args[1] > eco.get(pl))
                 return pl.sendToast("经济", "§c转账失败：余额不足");
+            let total = 0;
+            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
             const rlv = Math.round(
                 args[1] *
-                    (ll.hasExported("TotalMoney", "Get")
-                        ? 1 - ll.imports("TotalMoney", "Get")() * 1e-5
-                        : rate)
+                    (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
             );
             if (rlv <= 0) return pl.sendToast("经济", "§c转账失败：数额过小");
             eco.reduce(pl, args[1]);
