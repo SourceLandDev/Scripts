@@ -43,45 +43,95 @@ cmd.setCallback((_cmd, ori, out, _res) => {
     main(ori.player);
 });
 cmd.setup();
+const data = {};
+const taskCache = {};
 function main(pl) {
-    const fm = mc.newSimpleForm().setTitle("友链列表");
     const linksFile = File.readFrom("plugins/FriendLinks/links.json") ?? "[]";
     if (linksFile == null) {
         File.writeTo("plugins/FriendLinks/links.json", "[]");
         linksFile = "[]";
     }
     const links = JSON.parse(linksFile);
-    const array = [];
+    data[pl.xuid] = { links: [], actions: [] };
     for (const link of links) {
-        if (!ll.hasExported("MOTDAPI", "GetFromBE")) {
-            fm.addButton(`${link.name} - ${link.type}\n${link.introduction}`);
-            array.push(link);
+        if (!ll.hasExported("MOTDAPI", "GetFromBEAsync")) {
+            data[pl.xuid].links.push(link);
             continue;
         }
-        const motdStr = ll.imports("MOTDAPI", "GetFromBE")(link.ip, link, port);
-        const motdArray = motdStr.split(";");
-        if (motdArray[2] != mc.getServerProtocolVersion()) continue;
-        fm.addButton(
-            `${link.name} - ${link.type}\n${motdArray[4]}人在线 ${motdArray[1]}`
+        const taskId = ll.imports("MOTDAPI", "GetFromBEAsync")(
+            link.ip,
+            link.port,
+            "FriendLinks",
+            "Callback",
+            1000
         );
-        array.push(link);
+        data[pl.xuid].actions.push(taskId);
+        taskCache[taskId] = { xuid: pl.xuid, link: link };
+    }
+    if (!ll.hasExported("MOTDAPI", "GetFromBEAsync")) sendForm(pl);
+}
+function sendForm(pl) {
+    const fm = mc.newSimpleForm().setTitle("友链列表");
+    for (const link of data[pl.xuid].links) {
+        fm.addButton(
+            `${link.name} - ${link.type}\n${
+                "count" in link && link.count > 0 ? `${link.count}人在线` : ""
+            } ${
+                "motd" in link
+                    ? link.motd
+                    : "introduction" in link
+                    ? link.introduction
+                    : ""
+            }`
+        );
     }
     pl.sendForm(
         fm.setContent(
-            `当前${array.length}服务器在线\n点击按钮即可进入对应服务器`
+            `当前有${
+                data[pl.xuid].links.length
+            }个服务器在线\n点击按钮即可进入对应服务器`
         ),
         (pl, arg) => {
-            if (arg == null) return;
+            if (arg == null) {
+                delete data[pl.xuid];
+                return;
+            }
+            pl.transServer(
+                data[pl.xuid].links[arg].ip,
+                data[pl.xuid].links[arg].port
+            );
             if (ll.hasExported("MessageSync", "SendMessage"))
                 ll.imports("MessageSync", "SendMessage")(
                     `*${
                         ll.hasExported("UserName", "Get")
                             ? ll.imports("UserName", "Get")(pl)
                             : pl.realName
-                    }*已去往${array[arg].name}`,
+                    }*已去往${data[pl.xuid].links[arg].name}`,
                     -2
                 );
-            pl.transServer(array[arg].ip, array[arg].port);
+            delete data[pl.xuid];
         }
     );
 }
+ll.exports(
+    (id, motdStr) => {
+        const motdArray = motdStr.split(";");
+        if (motdArray[2] == mc.getServerProtocolVersion()) {
+            taskCache[id].link.count = motdArray[4];
+            taskCache[id].link.motd = motdArray[1];
+            data[taskCache[id].xuid].links.push(taskCache[id].link);
+        }
+        data[taskCache[id].xuid].actions.splice(
+            data[taskCache[id].xuid].actions.indexOf(id),
+            1
+        );
+        if (data[taskCache[id].xuid].actions.length <= 0) {
+            const pl = mc.getPlayer(taskCache[id].xuid);
+            if (pl) sendForm(pl);
+            else delete data[pl.xuid];
+        }
+        delete taskCache[id];
+    },
+    "FriendLinks",
+    "Callback"
+);
