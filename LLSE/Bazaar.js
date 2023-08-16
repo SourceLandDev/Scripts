@@ -574,7 +574,12 @@ function itemUpload(pl, args = [0, "", 1]) {
     else fm.addSlider("数量", 1, max, 1, args[2]);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemsManagement(pl);
-        if (isNaN(args[1]) || args[1] < 0) {
+        let total = 0;
+        for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
+        const minPrice = Math.round(
+            total / 10 ** Math.floor(Math.log10(total))
+        );
+        if (isNaN(args[1]) || args[1] < minPrice) {
             pl.sendToast("集市", "§c物品上架失败：无效价格");
             return itemUpload(pl, args);
         }
@@ -655,7 +660,12 @@ function offerCreate(pl, args = ["", "0", "", "", ""]) {
                 pl.sendToast("集市", "§c报价创建失败：无效数量");
                 return offerCreate(pl, args);
             }
-            if (args[3] <= 0) {
+            let total = 0;
+            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
+            const minPrice = Math.round(
+                total / 10 ** Math.floor(Math.log10(total))
+            );
+            if (args[3] < minPrice) {
                 pl.sendToast("集市", "§c报价创建失败：无效价格");
                 return offerCreate(pl, args);
             }
