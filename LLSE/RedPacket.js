@@ -111,7 +111,9 @@ function redpacket(pl, key) {
     if (Object.keys(rpdata.recipient).length >= rpdata.count) {
         for (const player of mc.getOnlinePlayers()) {
             if (player.xuid == pl.xuid) continue;
-            player.tell(`§e红包${args[0] ? `《${args[0]}》` : ""}已被领完`);
+            player.tell(
+                `§e红包${rpdata.msg ? `《${rpdata.msg}》` : ""}已被领完`
+            );
         }
         db.delete(key);
     }
