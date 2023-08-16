@@ -46,12 +46,6 @@ cmd.setCallback((_cmd, ori, out, _res) => {
 });
 cmd.setup();
 setInterval(() => {
-    const tps = ll.hasExported("TPSAPI", "GetCurrectTPS")
-        ? ll.imports("TPSAPI", "GetCurrectTPS")()
-        : 20;
-    const workingSet = ll.hasExported("InfoAPI", "GetWorkingSet")
-        ? ll.imports("InfoAPI", "GetWorkingSet")()
-        : 0;
     for (const player of mc.getOnlinePlayers()) {
         player.removeSidebar();
         if (!db.get(player.xuid)) continue;
@@ -77,21 +71,6 @@ setInterval(() => {
                         : "b"
                 }时延`
             ] = dv.lastPing;
-        if (tps < 20)
-            list[
-                `§${
-                    tps > 6 * 3
-                        ? "a"
-                        : tps > 7 * 2
-                        ? "e"
-                        : tps > 3 * 3
-                        ? "c"
-                        : tps > 5
-                        ? "4"
-                        : 0
-                }负载`
-            ] = 100 - tps * 5;
-        if (workingSet > 0) list["内存"] = workingSet / 2 ** 20;
         player.setSidebar(" ", list);
     }
 }, 1000);
