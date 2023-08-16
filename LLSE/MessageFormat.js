@@ -36,13 +36,12 @@ ll.registerPlugin("MessageFormat", "消息格式化", [1, 0, 0]);
 const msgs = {};
 mc.listen("onChat", (pl, msg) => {
     const time = system.getTimeObj();
-    let name = pl.realName;
-    if (ll.hasExported("UserName", "Get"))
-        name = ll.imports("UserName", "Get")(pl);
     mc.broadcast(
-        `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${
-            time.m
-        } ${name}§r：${msg}`
+        `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${
+            ll.hasExported("UserName", "Get")
+                ? ll.imports("UserName", "Get")(pl)
+                : pl.realName
+        }§r：${msg}`
     );
     const xuid = pl.xuid;
     if (!msgs[xuid]) msgs[xuid] = [];
@@ -65,8 +64,11 @@ function rename(pl, isObj) {
         strOfMsgs += `${msg[0].h}:${msg[0].m < 10 ? 0 : ""}${msg[0].m} ${
             msg[1]
         }§r\n`;
-    let name = pl.realName;
-    if (ll.hasExported("UserName", "Get"))
-        name = ll.imports("UserName", "Get")(pl);
-    pl.rename(`${strOfMsgs}${name}`);
+    pl.rename(
+        `${strOfMsgs}${
+            ll.hasExported("UserName", "Get")
+                ? ll.imports("UserName", "Get")(pl)
+                : pl.realName
+        }`
+    );
 }

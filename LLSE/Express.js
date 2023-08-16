@@ -78,10 +78,11 @@ function main(pl) {
     for (const player of mc.getOnlinePlayers())
         if (player.xuid != pl.xuid) {
             plsxuid.push(player.xuid);
-            let name = player.realName;
-            if (ll.hasExported("UserName", "Get"))
-                name = ll.imports("UserName", "Get")(player);
-            plnms.push(name);
+            plnms.push(
+                ll.hasExported("UserName", "Get")
+                    ? ll.imports("UserName", "Get")(player)
+                    : player.realName
+            );
         }
     if (plnms.length <= 0)
         return pl.sendToast("物流", "§c送达失败：暂无可送达用户");
@@ -157,11 +158,12 @@ function main(pl) {
         }
         if (sendItems.length <= 0) return;
         eco.reduce(pl, reduce);
-        let toName = pl1.realName;
-        if (ll.hasExported("UserName", "Get"))
-            toName = ll.imports("UserName", "Get")(pl1);
         pl.tell(
-            `向${toName}发送了以下物品${
+            `向${
+                ll.hasExported("UserName", "Get")
+                    ? ll.imports("UserName", "Get")(pl1)
+                    : pl1.realName
+            }发送了以下物品${
                 reduce > 0 ? `（花费${reduce}${eco.name}）` : ""
             }：`
         );

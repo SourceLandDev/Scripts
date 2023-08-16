@@ -122,10 +122,13 @@ function sendInit(pl) {
                             !mc.getPlayer(key)
                         )
                             continue;
-                        let name = data.xuid2name(key);
-                        if (ll.hasExported("UserName", "GetFromXuid"))
-                            name = ll.imports("UserName", "GetFromXuid")(key);
-                        options.push(`${name}（${dt.version}）`);
+                        options.push(
+                            `${
+                                ll.hasExported("UserName", "GetFromXuid")
+                                    ? ll.imports("UserName", "GetFromXuid")(key)
+                                    : data.xuid2name(key)
+                            }（${dt.version}）`
+                        );
                         xuids.push(key);
                     }
                     if (xuids.length <= 0) {
@@ -144,12 +147,13 @@ function sendInit(pl) {
                                 pl.tell("§c玩家已离线");
                                 return sendInit(pl);
                             }
-                            let name = pl.realName;
-                            if (ll.hasExported("UserName", "Get"))
-                                name = ll.imports("UserName", "Get")(pl);
                             pl1.sendModalForm(
                                 "组队请求",
-                                `${name}请求与您组队`,
+                                `${
+                                    ll.hasExported("UserName", "Get")
+                                        ? ll.imports("UserName", "Get")(pl)
+                                        : pl.realName
+                                }请求与您组队`,
                                 "同意",
                                 "拒绝",
                                 (pl1, arg) => {

@@ -65,7 +65,7 @@ const eco = (() => {
 })();
 config.close();
 const db = new KVDatabase("plugins/RedPacket/data");
-const cmd = mc.newCommand(command, "打开红包菜单。", PermType.Any);
+const cmd = mc.newCommand(command, "打开红包列表。", PermType.Any);
 cmd.overload();
 cmd.setCallback((_cmd, ori, out, _res) => {
     if (!ori.player) return out.error("commands.generic.noTargetMatch");
