@@ -33,16 +33,34 @@ English:
 "use strict";
 ll.registerPlugin("MessageFormat", "消息格式化", [1, 0, 0]);
 
+const db = new KVDatabase("plugins/MessageFormat/data");
+const cmd = mc.newCommand("mute", "禁言。", PermType.GameMasters);
+cmd.mandatory("player", ParamType.Player);
+cmd.mandatory("tick", ParamType.Int);
+cmd.overload(["player", "tick"]);
+cmd.setCallback((_cmd, _ori, out, res) => {
+    if (!res.player) return out.error("commands.generic.noTargetMatch");
+    for (const pl of res.player) {
+        db.set(pl.xuid, res.tick);
+        out.success(`已禁言${pl.realName} ${parseTime(res.tick)}`);
+    }
+});
+cmd.setup();
 const msgs = {};
 mc.listen("onChat", (pl, msg) => {
+    const tick = db.get(pl.xuid);
     const time = system.getTimeObj();
-    mc.broadcast(
-        `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${time.m} ${
-            ll.hasExported("UserName", "Get")
-                ? ll.imports("UserName", "Get")(pl)
-                : pl.realName
-        }§r：${msg}`
-    );
+    if (tick) pl.tell(`§c您已被禁言，还剩${parseTime(tick)}恢复`);
+    else
+        mc.broadcast(
+            `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${
+                time.m
+            } ${
+                ll.hasExported("UserName", "Get")
+                    ? ll.imports("UserName", "Get")(pl)
+                    : pl.realName
+            }§r：${msg}`
+        );
     const xuid = pl.xuid;
     if (!msgs[xuid]) msgs[xuid] = [];
     msgs[xuid].push([time, msg]);
@@ -52,6 +70,17 @@ mc.listen("onChat", (pl, msg) => {
         rename(xuid);
     }, 10000);
     return false;
+});
+mc.listen("onTick", () => {
+    for (const pl of mc.getOnlinePlayers()) {
+        const tick = db.get(pl.xuid);
+        if (tick == null) continue;
+        if (tick > 0) {
+            db.set(pl.xuid, tick - 1);
+            continue;
+        }
+        db.delete(pl.xuid);
+    }
 });
 
 function rename(pl, isObj) {
@@ -71,4 +100,36 @@ function rename(pl, isObj) {
                 : pl.realName
         }`
     );
+}
+function parseTime(tick) {
+    let result = "";
+    let link = {
+        base: 20,
+        name: "秒",
+        next: {
+            base: 60,
+            name: "分",
+            next: {
+                base: 60,
+                name: "小时",
+                next: {
+                    base: 24,
+                    name: "天",
+                    next: {
+                        base: 30,
+                        name: "月",
+                        next: { base: 4, name: "年" },
+                    },
+                },
+            },
+        },
+    };
+    while (link.next) {
+        tick = tick / link.base;
+        if (tick < 1) break;
+        let time = Math.round(tick) % link.next.base;
+        if (time > 0) result = `${time}${link.name}${result}`;
+        link = link.next;
+    }
+    return result;
 }
