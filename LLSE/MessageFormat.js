@@ -45,7 +45,6 @@ muteCommand.setCallback((_cmd, _ori, out, res) => {
     for (const pl of res.player) {
         db.set(pl.xuid, res.tick);
         names.push(pl.realName);
-        pl.sendToast("聊天", `你已被禁言${parseTime(res.tick)}`);
     }
     out.success(`${names.join("、")}已被禁言${parseTime(res.tick)}`);
 });
@@ -65,26 +64,27 @@ unmuteCommand.setCallback((_cmd, _ori, out, res) => {
         if (!db.get(pl.xuid)) return;
         db.delete(pl.xuid);
         names.push(pl.realName);
-        pl.sendToast("聊天", "你已被解除禁言");
     }
     out.success(`已解除${names.join("、")}的禁言`);
 });
 unmuteCommand.setup();
 const msgs = {};
 mc.listen("onChat", (pl, msg) => {
-    const tick = db.get(pl.xuid);
     const time = system.getTimeObj();
-    if (tick) pl.tell(`§c您已被禁言，还剩${parseTime(tick)}恢复`);
-    else
-        mc.broadcast(
-            `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${
-                time.m
-            } ${
-                ll.hasExported("UserName", "Get")
-                    ? ll.imports("UserName", "Get")(pl)
-                    : pl.realName
-            }§r：${msg}`
-        );
+    const msgHead = `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${
+        time.m
+    } ${
+        ll.hasExported("UserName", "Get")
+            ? ll.imports("UserName", "Get")(pl)
+            : pl.realName
+    }§r：`;
+    if (db.get(pl.xuid))
+        for (const player of mc.getOnlinePlayers()) {
+            player.tell(
+                `${msgHead}${player.xuid == pl.xuid ? msg : "§o已被屏蔽"}`
+            );
+        }
+    else mc.broadcast(`${msgHead}${msg}`);
     const xuid = pl.xuid;
     if (!msgs[xuid]) msgs[xuid] = [];
     msgs[xuid].push([time, msg]);
@@ -104,7 +104,6 @@ mc.listen("onTick", () => {
             continue;
         }
         db.delete(pl.xuid);
-        pl.sendToast("聊天", "你已被解除禁言");
     }
 });
 

@@ -160,3 +160,11 @@ ll.exports(
     "UserName",
     "GetFromXuid"
 );
+ll.exports(
+    (pl, name) => {
+        db.set(pl.xuid, name);
+        setName(pl, nameData.name);
+    },
+    "UserName",
+    "Set"
+);
