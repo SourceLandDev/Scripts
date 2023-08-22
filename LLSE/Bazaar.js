@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 7]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 8]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -479,6 +479,7 @@ function offerProcess(pl, uuid) {
         }
         const seller = nowOffers[uuid].seller;
         const sellers = db.get("sellers") ?? {};
+        const price = nowOffers[uuid].price;
         if (nowOffers[uuid].count <= num) {
             delete nowOffers[uuid];
             sellers[seller].offers.splice(
@@ -501,7 +502,7 @@ function offerProcess(pl, uuid) {
         for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
         const get = Math.round(
             num *
-                nowOffers[uuid].price *
+                price *
                 (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
         );
         eco.add(pl, get);
