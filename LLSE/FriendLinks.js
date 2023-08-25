@@ -100,8 +100,8 @@ function sendForm(pl) {
                 data[pl.xuid].links[arg].ip,
                 data[pl.xuid].links[arg].port
             );
-            if (ll.hasExported("MessageSync", "SendMessage"))
-                ll.imports("MessageSync", "SendMessage")(
+            if (ll.hasExported("MessageSync", "SendMessageAsync"))
+                ll.imports("MessageSync", "SendMessageAsync")(
                     `*${
                         ll.hasExported("UserName", "Get")
                             ? ll.imports("UserName", "Get")(pl)

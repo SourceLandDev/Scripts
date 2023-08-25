@@ -40,7 +40,7 @@ const db = new KVDatabase("plugins/EULA/data");
 mc.listen("onJoin", (pl) => {
     if (db.get(pl.xuid)) {
         if (ll.hasExported("BlockIsland", "sendInit"))
-            ll.imports("BlockIsland", "sendInit")(pl.xuid);
+            ll.imports("BlockIsland", "sendInit")(pl);
         return;
     }
     pl.sendModalForm(
@@ -70,8 +70,8 @@ mc.listen("onJoin", (pl) => {
                             `欢迎${pl.realName}加入了我们！`
                         );
                     }
-                    if (ll.hasExported("MessageSync", "SendMessage"))
-                        ll.imports("MessageSync", "SendMessage")(
+                    if (ll.hasExported("MessageSync", "SendMessageAsync"))
+                        ll.imports("MessageSync", "SendMessageAsync")(
                             `欢迎*${pl.realName}*加入了我们！`,
                             -2
                         );

@@ -131,8 +131,8 @@ function main(pl, def) {
                 if (player.xuid == pl.xuid) continue;
                 player.tell(`§e${pl.realName}重命名为${args[0]}`);
             }
-            if (ll.hasExported("MessageSync", "SendMessage"))
-                ll.imports("MessageSync", "SendMessage")(
+            if (ll.hasExported("MessageSync", "SendMessageAsync"))
+                ll.imports("MessageSync", "SendMessageAsync")(
                     `*${pl.realName}*重命名为*${args[0]}*`,
                     -2
                 );
