@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 8]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 9]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -598,8 +598,18 @@ function itemUpload(pl, args = [0, "", 1]) {
         }
         const items = db.get("items") ?? {};
         const uuid = system.randomGuid();
+        let testedTimes = 0;
+        let snbt = itemData[args[0]].item.getNbt().toSNBT();
+        while (!NBT.parseSNBT(items[uuid].snbt)) {
+            if (testedTimes > 2 ** 4) {
+                pl.sendToast("集市", "§c物品上架失败：无效物品");
+                return itemUpload(pl, args);
+            }
+            snbt = itemData[args[0]].item.getNbt().toSNBT();
+            ++testedTimes;
+        }
         items[uuid] = {
-            snbt: itemData[args[0]].item.getNbt().toSNBT(),
+            snbt: snbt,
             count: num,
             price: Number(args[1]),
             seller: pl.xuid,
