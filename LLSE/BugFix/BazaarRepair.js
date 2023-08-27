@@ -11,7 +11,7 @@ for (const uuid in items) {
         if (!NBT.parseSNBT(items[uuid].snbt)) throw undefined;
         if (items[uuid].count <= 0) throw undefined;
     } catch {
-        sellers[items[uuid].seller] = sellers[items[uuid].seller].items.slice(
+        sellers[items[uuid].seller].items = sellers[items[uuid].seller].items.slice(
             sellers[items[uuid].seller].items.indexOf(uuid),
             1
         );
@@ -22,7 +22,7 @@ for (const uuid in offers) {
     try {
         if (offers[uuid].count <= 0) throw undefined;
     } catch {
-        sellers[offers[uuid].seller] = sellers[
+        sellers[offers[uuid].seller].offers = sellers[
             offers[uuid].seller
         ].offers.slice(sellers[offers[uuid].seller].offers.indexOf(uuid), 1);
         delete offers[uuid];
