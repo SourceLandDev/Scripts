@@ -488,29 +488,6 @@ mc.listen("onDestroyBlock", (pl, bl) => {
             return;
         }
         if (
-            (ll.hasExported("landEX_GetHasPLandPermbyPos") &&
-                ll.imports("landEX_GetHasPLandPermbyPos")(
-                    x,
-                    y,
-                    z,
-                    bl.pos.dimid
-                )) ||
-            (ll.hasExported("ILAPI_PosGetLand") &&
-                ll.imports("ILAPI_PosGetLand")({
-                    x: x,
-                    y: y,
-                    z: z,
-                    dimid: bl.pos.dimid,
-                }) != -1) ||
-            (ll.hasExported("Territory", "HasPermission") &&
-                !ll.imports("Territory", "HasPermission")(
-                    pl.xuid,
-                    x,
-                    y,
-                    z,
-                    bl.pos.dimid,
-                    "DestroyBlock"
-                )) ||
             !(pl.xuid in destroyingBlocks) ||
             destroyingBlocks[pl.xuid].indexOf(nextBlock.pos.toString()) >= 0 ||
             nextBlock.type != bl.type ||
