@@ -600,7 +600,7 @@ function itemUpload(pl, args = [0, "", 1]) {
         const uuid = system.randomGuid();
         let testedTimes = 0;
         let snbt = itemData[args[0]].item.getNbt().toSNBT();
-        while (!NBT.parseSNBT(items[uuid].snbt)) {
+        while (!NBT.parseSNBT(snbt)) {
             if (testedTimes > 2 ** 4) {
                 pl.sendToast("集市", "§c物品上架失败：无效物品");
                 return itemUpload(pl, args);
