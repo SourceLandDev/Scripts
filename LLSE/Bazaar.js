@@ -339,9 +339,7 @@ function itemBuy(pl, uuid) {
         pl.sendToast("集市", "§c物品购买失败：余额不足");
         return browseItems(pl);
     }
-    if (items[uuid].count < canBuyMax) {
-        canBuyMax = items[uuid].count;
-    }
+    if (items[uuid].count < canBuyMax) canBuyMax = items[uuid].count;
     const itemNBT = NBT.parseSNBT(items[uuid].snbt);
     const fm = mc
         .newCustomForm()
@@ -356,9 +354,7 @@ function itemBuy(pl, uuid) {
     const enchData = tag ? tag.getData("ench") : undefined;
     if (enchData) {
         let msg = "附魔：";
-        for (const e of enchData.toArray()) {
-            msg += `\n${ench[e.id]} ${e.lvl}`;
-        }
+        for (const e of enchData.toArray()) msg += `\n${ench[e.id]} ${e.lvl}`;
         fm.addLabel(msg);
     }
     if (/potion/.test(itemNBT.getData("Name")))
@@ -442,9 +438,7 @@ function offerProcess(pl, uuid) {
         pl.sendToast("集市", "§c报价处理失败：物品不足");
         return browseOffers(pl);
     }
-    if (itemCount > offers[uuid].count) {
-        itemCount = offers[uuid].count;
-    }
+    if (itemCount > offers[uuid].count) itemCount = offers[uuid].count;
     let total = 0;
     for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
     const fm = mc
@@ -554,11 +548,9 @@ function itemUpload(pl, args = [0, "", 1]) {
         const tag = itemNBT.getTag("tag");
         const enchData = tag ? tag.getData("ench") : undefined;
         let msg = "";
-        if (enchData) {
-            for (const e of enchData.toArray()) {
+        if (enchData)
+            for (const e of enchData.toArray())
                 msg += ` ${ench[e.id]} ${e.lvl}`;
-            }
-        }
         if (/potion/.test(itemNBT.getData("Name")))
             msg += ` ${eff[itemNBT.getTag("Damage")]}`;
         namesOfItem.push(

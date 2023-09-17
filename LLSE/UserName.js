@@ -108,12 +108,11 @@ function main(pl, def) {
                 );
                 return main(pl, args[0]);
             }
-            for (const reg of regex) {
+            for (const reg of regex)
                 if (new RegExp(reg.pattern).test(args[0])) {
                     pl.sendToast("重命名", `§c修改失败：${reg.message}`);
                     return main(pl, args[0]);
                 }
-            }
             const reduce = Math.round(
                 Math.random() * (serviceCharge.min - condition) + condition
             );

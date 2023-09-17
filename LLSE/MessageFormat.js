@@ -79,11 +79,10 @@ mc.listen("onChat", (pl, msg) => {
             : pl.realName
     }§r：`;
     if (db.get(pl.xuid))
-        for (const player of mc.getOnlinePlayers()) {
+        for (const player of mc.getOnlinePlayers())
             player.tell(
                 `${msgHead}${player.xuid == pl.xuid ? msg : "§o已被屏蔽"}`
             );
-        }
     else mc.broadcast(`${msgHead}${msg}`);
     const xuid = pl.xuid;
     if (!msgs[xuid]) msgs[xuid] = [];

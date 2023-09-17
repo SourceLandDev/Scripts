@@ -21,13 +21,12 @@ for (const key of keys) {
         };
         newShop.items.push(item.guid);
     }
-    for (const ut of shop.pending) {
+    for (const ut of shop.pending)
         newShop.unprocessedTransactions.push({
             price: Number(ut.item.price),
             count: Number(ut.count),
             serviceCharge: Number(ut.serviceCharge),
         });
-    }
     if (
         newShop.items.length <= 0 &&
         newShop.offers.length <= 0 &&
