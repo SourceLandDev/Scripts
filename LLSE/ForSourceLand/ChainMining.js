@@ -1,6 +1,6 @@
 /*
 English:
-    ChainGather
+    ChainMining
     Copyright (C) 2023  StarsDream00 starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -31,9 +31,9 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("ChainGather", "连锁采集", [1, 0, 0]);
+ll.registerPlugin("ChainMining", "连锁采集", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins/ChainGather/config.json");
+const config = new JsonConfigFile("plugins/ChainMining/config.json");
 const defaultState = config.init("defaultState", false);
 const maxChain = config.init("maxChain", 2 ** 4);
 const blockList = config.init("blockList", {
@@ -396,8 +396,8 @@ const eco = (() => {
             };
     }
 })();
-const command = config.init("command", "chaingather");
-const paidCommand = config.init("paidCommand", "paidchaingather");
+const command = config.init("command", "chainmining");
+const paidCommand = config.init("paidCommand", "paidchainmining");
 config.close();
 const states = {};
 const paidStates = {};
