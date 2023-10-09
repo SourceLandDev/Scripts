@@ -102,7 +102,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
             const reg = new RegExp(rule);
             if (
                 !reg.test(bl.type) ||
-                ((checkTileData = effectBlocks[e.id][rule] >= 0) &&
+                ((checkTileData = effectBlocks.undefined[rule] >= 0) &&
                     bl.tileData != effectBlocks.undefined[rule])
             )
                 continue;

@@ -134,27 +134,23 @@ function main(pl) {
         );
         const sendItems = [];
         for (const index in args) {
-            if (args[index] <= 0) continue;
+            const num = Math.round(args[index]);
+            if (num <= 0) continue;
             const item = items[index];
-            if (item.count < args[index]) {
+            if (item.count < num) {
                 pl.sendToast(
                     "物流",
-                    `§c${item.name}§r*${args[index]}送达失败：数量不足`
+                    `§c${item.name}§r*${num}送达失败：数量不足`
                 );
                 continue;
             }
             const itemNbt = item.getNbt();
-            const newitem = mc.newItem(
-                itemNbt.setByte("Count", Number(args[index]))
-            );
-            if (item.count == args[index]) item.setNull();
-            else
-                item.setNbt(
-                    itemNbt.setByte("Count", Number(item.count - args[index]))
-                );
+            const newitem = mc.newItem(itemNbt.setByte("Count", num));
+            if (item.count == num) item.setNull();
+            else item.setNbt(itemNbt.setByte("Count", item.count - num));
             pl.refreshItems();
-            pl1.giveItem(newitem, Number(args[index]));
-            sendItems.push({ name: item.name, count: args[index] });
+            pl1.giveItem(newitem, num);
+            sendItems.push({ name: item.name, count: num });
         }
         if (sendItems.length <= 0) return;
         eco.reduce(pl, reduce);
