@@ -155,7 +155,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         if (
             !(pl.xuid in destroyingBlocks) ||
             destroyingBlocks[pl.xuid].includes(nextBlock.pos.toString()) ||
-            !reg.test(nextBlock.type) ||
+            !regex.test(nextBlock.type) ||
             (checkTileData && nextBlock.tileData != bl.tileData) ||
             !NativeFunction.fromSymbol(
                 "?canDestroy@Player@@QEBA_NAEBVBlock@@@Z"
