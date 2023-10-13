@@ -1,6 +1,6 @@
 /*
 English:
-    SwitchHand
+    SwapHand
     Copyright (C) 2023  Hosiyume starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -31,10 +31,10 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("SwitchHand", "交换主副手物品", [1, 0, 0]);
+ll.registerPlugin("SwapHand", "交换主副手物品", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins/SwitchHand/config.json");
-const command = config.init("command", "switchhand");
+const config = new JsonConfigFile("plugins/SwapHand/config.json");
+const command = config.init("command", "swaphand");
 config.close();
 const cmd = mc.newCommand(command, "交换主副手物品。", PermType.Any);
 cmd.overload();
