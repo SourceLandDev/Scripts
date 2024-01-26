@@ -141,11 +141,11 @@ function parseTime(tick) {
                     next: {
                         base: 30,
                         name: "月",
-                        next: { base: 4, name: "年" },
-                    },
-                },
-            },
-        },
+                        next: { base: 4, name: "年" }
+                    }
+                }
+            }
+        }
     };
     while (link.next) {
         tick = tick / link.base;

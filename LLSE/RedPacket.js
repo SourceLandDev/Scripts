@@ -43,23 +43,23 @@ const eco = (() => {
             return {
                 add: (pl, money) => pl.addMoney(money),
                 reduce: (pl, money) => pl.reduceMoney(money),
-                get: (pl) => pl.getMoney(),
-                name: currencyName,
+                get: pl => pl.getMoney(),
+                name: currencyName
             };
         case "scoreboard":
             const scoreboard = config.init("scoreboard", "money");
             return {
                 add: (pl, money) => pl.addScore(scoreboard, money),
                 reduce: (pl, money) => pl.reduceScore(scoreboard, money),
-                get: (pl) => pl.getScore(scoreboard),
-                name: currencyName,
+                get: pl => pl.getScore(scoreboard),
+                name: currencyName
             };
         case "currexp":
             return {
                 add: (pl, money) => pl.addExperience(money),
                 reduce: (pl, money) => pl.reduceExperience(money),
-                get: (pl) => pl.getCurrentExperience(),
-                name: "经验值",
+                get: pl => pl.getCurrentExperience(),
+                name: "经验值"
             };
     }
 })();
@@ -140,7 +140,7 @@ function send(pl) {
                 msg: args[0],
                 count: args[1],
                 level: args[2],
-                recipient: {},
+                recipient: {}
             });
             for (const player of mc.getOnlinePlayers()) {
                 if (player.xuid == pl.xuid) continue;

@@ -43,23 +43,23 @@ const eco = (() => {
             return {
                 add: (pl, money) => pl.addMoney(money),
                 reduce: (pl, money) => pl.reduceMoney(money),
-                get: (pl) => pl.getMoney(),
-                name: currencyName,
+                get: pl => pl.getMoney(),
+                name: currencyName
             };
         case "scoreboard":
             const scoreboard = config.init("scoreboard", "money");
             return {
                 add: (pl, money) => pl.addScore(scoreboard, money),
                 reduce: (pl, money) => pl.reduceScore(scoreboard, money),
-                get: (pl) => pl.getScore(scoreboard),
-                name: currencyName,
+                get: pl => pl.getScore(scoreboard),
+                name: currencyName
             };
         case "exp":
             return {
                 add: (pl, money) => pl.addExperience(money),
                 reduce: (pl, money) => pl.reduceExperience(money),
-                get: (pl) => pl.getTotalExperience(),
-                name: "经验值",
+                get: pl => pl.getTotalExperience(),
+                name: "经验值"
             };
     }
 })();
@@ -103,7 +103,7 @@ const ench = [
     "穿透",
     "快速装填",
     "灵魂疾行",
-    "迅捷潜行",
+    "迅捷潜行"
 ];
 const eff = [
     "无",
@@ -148,7 +148,7 @@ const eff = [
     "加强神龟",
     "缓降",
     "延长缓降",
-    "加强迟缓",
+    "加强迟缓"
 ];
 const cmd = mc.newCommand(command, "打开集市。", PermType.Any);
 cmd.overload();
@@ -157,13 +157,13 @@ cmd.setCallback((_cmd, ori, out, _res) => {
     main(ori.player);
 });
 cmd.setup();
-mc.listen("onJoin", (pl) => {
+mc.listen("onJoin", pl => {
     const sellers = db.get("sellers") ?? {};
     if (!(pl.xuid in sellers)) {
         sellers[pl.xuid] = {
             items: [],
             offers: [],
-            unprocessedTransactions: [],
+            unprocessedTransactions: []
         };
         db.set("sellers", sellers);
         return;
@@ -173,7 +173,7 @@ mc.listen("onJoin", (pl) => {
             const nbtData = {
                 Name: new NbtString(ut.item.name),
                 Damage: new NbtShort(ut.item.damage),
-                Count: new NbtByte(1),
+                Count: new NbtByte(1)
             };
             if (ut.item.ench) nbtData.ench = new NbtCompound(ut.item.ench);
             const item = mc.newItem(new NbtCompound(nbtData));
@@ -274,7 +274,7 @@ function browseOffers(pl) {
         const nbtData = {
             Name: new NbtString(offer.type),
             Damage: new NbtShort(offer.data),
-            Count: new NbtByte(1),
+            Count: new NbtByte(1)
         };
         if (offer.ench) nbtData.ench = new NbtCompound(offer.ench);
         const item = mc.newItem(new NbtCompound(nbtData));
@@ -313,7 +313,7 @@ function offersManagement(pl) {
         const nbtData = {
             Name: new NbtString(offers[uuid].type),
             Damage: new NbtShort(offers[uuid].data),
-            Count: new NbtByte(1),
+            Count: new NbtByte(1)
         };
         if (offers[uuid].ench)
             nbtData.ench = new NbtCompound(offers[uuid].ench);
@@ -405,7 +405,7 @@ function itemBuy(pl, uuid) {
         } else
             sellers[seller].unprocessedTransactions.push({
                 price: price,
-                count: num,
+                count: num
             });
         db.set("sellers", sellers);
         db.set("items", nowItems);
@@ -425,7 +425,7 @@ function offerProcess(pl, uuid) {
     const nbtData = {
         Name: new NbtString(offers[uuid].type),
         Damage: new NbtShort(offers[uuid].data),
-        Count: new NbtByte(1),
+        Count: new NbtByte(1)
     };
     if (offers[uuid].ench) nbtData.ench = new NbtCompound(offers[uuid].ench);
     const item = mc.newItem(new NbtCompound(nbtData));
@@ -512,9 +512,9 @@ function offerProcess(pl, uuid) {
                 item: {
                     name: offers[uuid].type,
                     damage: offers[uuid].data,
-                    ench: offers[uuid].ench,
+                    ench: offers[uuid].ench
                 },
-                count: num,
+                count: num
             });
         db.set("sellers", sellers);
         db.set("offers", nowOffers);
@@ -525,7 +525,7 @@ function offerProcess(pl, uuid) {
 function itemUpload(pl, args = [0, "", 1]) {
     const invItems = pl.getInventory().getAllItems();
     const itemData = [];
-    invItems.forEach((invItem) => {
+    invItems.forEach(invItem => {
         if (invItem.isNull()) return;
         for (const item of itemData)
             if (item.item.match(invItem)) {
@@ -534,7 +534,7 @@ function itemUpload(pl, args = [0, "", 1]) {
             }
         itemData.push({
             count: invItem.count,
-            item: invItem.clone(),
+            item: invItem.clone()
         });
     });
     if (itemData.length <= 0) {
@@ -604,7 +604,7 @@ function itemUpload(pl, args = [0, "", 1]) {
             snbt: snbt,
             count: num,
             price: Number(args[1]),
-            seller: pl.xuid,
+            seller: pl.xuid
         };
         for (const invItem of invItems) {
             if (num <= 0) break;
@@ -684,7 +684,7 @@ function offerCreate(pl, args = ["", "0", "", "", ""]) {
                 data: Number(args[1]),
                 count: Number(args[2]),
                 price: Number(args[3]),
-                seller: pl.xuid,
+                seller: pl.xuid
             };
             if (args[4]) {
                 offers[uuid].ench = {};

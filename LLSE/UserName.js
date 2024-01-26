@@ -44,23 +44,23 @@ const eco = (() => {
             return {
                 add: (pl, money) => pl.addMoney(money),
                 reduce: (pl, money) => pl.reduceMoney(money),
-                get: (pl) => pl.getMoney(),
-                name: currencyName,
+                get: pl => pl.getMoney(),
+                name: currencyName
             };
         case "scoreboard":
             const scoreboard = config.init("scoreboard", "money");
             return {
                 add: (pl, money) => pl.addScore(scoreboard, money),
                 reduce: (pl, money) => pl.reduceScore(scoreboard, money),
-                get: (pl) => pl.getScore(scoreboard),
-                name: currencyName,
+                get: pl => pl.getScore(scoreboard),
+                name: currencyName
             };
         case "xplevel":
             return {
                 add: (pl, money) => pl.addLevel(money),
                 reduce: (pl, money) => pl.reduceLevel(money),
-                get: (pl) => pl.getLevel(),
-                name: "级经验",
+                get: pl => pl.getLevel(),
+                name: "级经验"
             };
     }
 })();
@@ -74,10 +74,10 @@ cmd.setCallback((_cmd, ori, out, _res) => {
     main(ori.player);
 });
 cmd.setup();
-mc.listen("onPreJoin", (pl) => {
-    const nameData = db.get(pl.xuid);
-    if (!nameData) return;
-    setName(pl, nameData.name);
+mc.listen("onPreJoin", pl => {
+    const name = getName(pl);
+    if (name == pl.realName) return;
+    setName(pl, name);
 });
 function main(pl, def) {
     const nameData = db.get(pl.xuid);
@@ -93,7 +93,17 @@ function main(pl, def) {
         (pl, args) => {
             if (!args) return;
             let total = 0;
-            for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
+            let conflict = false;
+            for (const pl of mc.getOnlinePlayers()) {
+                total += eco.get(pl);
+                if (
+                    conflict ||
+                    otherPl.name != nameData.name ||
+                    otherPl.xuid == pl.xuid
+                )
+                    continue;
+                conflict = true;
+            }
             const condition =
                 serviceCharge.max *
                 (1 +
@@ -119,9 +129,9 @@ function main(pl, def) {
             eco.reduce(pl, reduce);
             db.set(pl.xuid, {
                 name: args[0],
-                times: (nameData ? nameData.times : 0) + 1,
+                times: (nameData ? nameData.times : 0) + 1
             });
-            setName(pl, args[0]);
+            setName(pl, conflict ? `${args[0]}（${pl.realName}）` : args[0]);
             pl.sendToast(
                 "重命名",
                 `修改成功${reduce > 0 ? `（花费${reduce}${eco.name}）` : ""}`
@@ -132,7 +142,7 @@ function main(pl, def) {
             }
             if (ll.hasExported("MessageSync", "SendMessageAsync"))
                 ll.imports("MessageSync", "SendMessageAsync")(
-                    `*${pl.realName}*重命名为*${args[0]}*`,
+                    `*${pl.realName}*\n重命名为*${args[0]}*`,
                     -2
                 );
         }
@@ -143,26 +153,38 @@ function setName(pl, name) {
         "?setName@Player@@UEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z"
     ).call(pl.asPointer(), name);
 }
+function getName(pl) {
+    const nameData = db.get(pl.xuid);
+    if (!nameData) return pl.realName;
+    for (const otherPl of mc.getOnlinePlayers()) {
+        if (otherPl.name != nameData.name || otherPl.xuid == pl.xuid) continue;
+        return `${nameData.name}（${pl.realName}）`;
+    }
+    return nameData.name;
+}
+function getNameByXuid(xuid) {
+    const nameData = db.get(xuid);
+    if (!nameData) return data.xuid2name(xuid);
+    for (const otherPl of mc.getOnlinePlayers()) {
+        if (otherPl.name != nameData.name || otherPl.xuid == xuid) continue;
+        return `${nameData.name}（${data.xuid2name(xuid)}）`;
+    }
+    return nameData.name;
+}
+ll.exports(getName, "UserName", "Get");
+ll.exports(getNameByXuid, "UserName", "GetFromXuid");
 ll.exports(
-    (pl) => {
-        const nameData = db.get(pl.xuid);
-        return nameData ? nameData.name : pl.realName;
-    },
-    "UserName",
-    "Get"
-);
-ll.exports(
-    (xuid) => {
-        const nameData = db.get(xuid);
-        return nameData ? nameData.name : data.xuid2name(xuid);
-    },
-    "UserName",
-    "GetFromXuid"
-);
-ll.exports(
-    (pl, name) => {
-        db.set(pl.xuid, name);
-        setName(pl, nameData.name);
+    (pl, name, doAddTime = true) => {
+        const nameData = db.get(pl.xuid) ?? {};
+        nameData.name = name;
+        nameData.times =
+            "times" in nameData
+                ? doAddTime
+                    ? nameData.times + 1
+                    : nameData.times
+                : 1;
+        db.set(pl.xuid, nameData);
+        setName(pl, name);
     },
     "UserName",
     "Set"

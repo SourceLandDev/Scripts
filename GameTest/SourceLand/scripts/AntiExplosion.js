@@ -33,7 +33,7 @@ English:
 "use strict";
 import * as mc from "@minecraft/server";
 
-mc.world.beforeEvents.explosion.subscribe((arg) => {
+mc.world.beforeEvents.explosion.subscribe(arg => {
     if (
         arg.source &&
         (arg.source.typeId == "minecraft:creeper" ||

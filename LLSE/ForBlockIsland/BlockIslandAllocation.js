@@ -90,7 +90,7 @@ function sendInit(pl) {
                     }, 50);
                     db.set(pl.xuid, {
                         version: "classic",
-                        pos: { x: x, y: y, z: z },
+                        pos: { x: x, y: y, z: z }
                     });
                     return pl.tell("分配完毕");
                 }
@@ -107,7 +107,7 @@ function sendInit(pl) {
                     pl.teleport(x, y, z, 0);
                     db.set(pl.xuid, {
                         version: "common_island",
-                        pos: { x: x, y: y, z: z },
+                        pos: { x: x, y: y, z: z }
                     });
                     return pl.tell("分配完毕");
                 }
@@ -179,7 +179,7 @@ function sendInit(pl) {
                                     );
                                     db.set(pl.xuid, {
                                         version: "team",
-                                        pos: d2.pos,
+                                        pos: d2.pos
                                     });
                                     pl.tell(`与${pl1.realName}组队成功`);
                                 }

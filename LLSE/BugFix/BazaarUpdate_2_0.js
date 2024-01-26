@@ -10,14 +10,14 @@ for (const key of keys) {
     const newShop = {
         items: [],
         offers: [],
-        unprocessedTransactions: [],
+        unprocessedTransactions: []
     };
     for (const item of Object.values(shop.items)) {
         items[item.guid] = {
             snbt: item.snbt,
             count: Number(NBT.parseSNBT(item.snbt).getData("Count")),
             price: Number(item.price),
-            seller: key,
+            seller: key
         };
         newShop.items.push(item.guid);
     }
@@ -25,7 +25,7 @@ for (const key of keys) {
         newShop.unprocessedTransactions.push({
             price: Number(ut.item.price),
             count: Number(ut.count),
-            serviceCharge: Number(ut.serviceCharge),
+            serviceCharge: Number(ut.serviceCharge)
         });
     if (
         newShop.items.length <= 0 &&

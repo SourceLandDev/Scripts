@@ -37,7 +37,7 @@ const config = new JsonConfigFile("plugins/EULA/config.json");
 const serverName = config.init("serverName", "");
 config.close();
 const db = new KVDatabase("plugins/EULA/data");
-mc.listen("onJoin", (pl) => {
+mc.listen("onJoin", pl => {
     if (db.get(pl.xuid)) {
         if (ll.hasExported("BlockIsland", "sendInit"))
             ll.imports("BlockIsland", "sendInit")(pl);
