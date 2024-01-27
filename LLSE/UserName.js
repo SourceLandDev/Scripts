@@ -75,9 +75,39 @@ cmd.setCallback((_cmd, ori, out, _res) => {
 });
 cmd.setup();
 mc.listen("onPreJoin", pl => {
-    const name = getName(pl);
-    if (name == pl.realName) return;
+    const nameData = db.get(pl.xuid);
+    const name = nameData ? nameData.name : pl.realName;
+    for (const otherPl of mc.getOnlinePlayers()) {
+        const otherNameData = db.get(otherPl.xuid);
+        if (
+            otherPl.xuid == pl.xuid ||
+            !otherNameData ||
+            otherNameData.name != name
+        )
+            continue;
+        if (name != pl.realName && name == pl.name)
+            setName(pl, `${name}（${pl.realName}）`);
+        if (name != otherPl.realName && name == otherPl.name)
+            setName(otherPl, `${name}（${pl.realName}）`);
+    }
     setName(pl, name);
+});
+mc.listen("onLeft", pl => {
+    const nameData = db.get(pl.xuid);
+    const name = nameData ? nameData.name : pl.realName;
+    let pli;
+    for (const otherPl of mc.getOnlinePlayers()) {
+        const otherNameData = db.get(otherPl.xuid);
+        if (
+            otherPl.xuid == pl.xuid ||
+            !otherNameData ||
+            otherNameData.name != name
+        )
+            continue;
+        if (pli) return;
+        pli = otherPl;
+    }
+    if (pli) setName(pli, name);
 });
 function main(pl, def) {
     const nameData = db.get(pl.xuid);
@@ -92,14 +122,17 @@ function main(pl, def) {
             ),
         (pl, args) => {
             if (!args) return;
+            const nameData = db.get(pl.xuid);
             let total = 0;
             let conflict = false;
             for (const pl of mc.getOnlinePlayers()) {
                 total += eco.get(pl);
+                const otherNameData = db.get(otherPl.xuid);
                 if (
                     conflict ||
-                    otherPl.name != nameData.name ||
-                    otherPl.xuid == pl.xuid
+                    otherPl.xuid == pl.xuid ||
+                    !otherNameData ||
+                    otherNameData.name != args[0]
                 )
                     continue;
                 conflict = true;
@@ -149,6 +182,7 @@ function main(pl, def) {
     );
 }
 function setName(pl, name) {
+    if (name == pl.name) return;
     NativeFunction.fromSymbol(
         "?setName@Player@@UEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z"
     ).call(pl.asPointer(), name);
@@ -157,7 +191,13 @@ function getName(pl) {
     const nameData = db.get(pl.xuid);
     if (!nameData) return pl.realName;
     for (const otherPl of mc.getOnlinePlayers()) {
-        if (otherPl.name != nameData.name || otherPl.xuid == pl.xuid) continue;
+        const otherNameData = db.get(otherPl.xuid);
+        if (
+            otherPl.xuid == pl.xuid ||
+            !otherNameData ||
+            otherNameData.name != nameData.name
+        )
+            continue;
         return `${nameData.name}（${pl.realName}）`;
     }
     return nameData.name;
@@ -166,7 +206,13 @@ function getNameByXuid(xuid) {
     const nameData = db.get(xuid);
     if (!nameData) return data.xuid2name(xuid);
     for (const otherPl of mc.getOnlinePlayers()) {
-        if (otherPl.name != nameData.name || otherPl.xuid == xuid) continue;
+        const otherNameData = db.get(otherPl.xuid);
+        if (
+            otherPl.xuid == xuid ||
+            !otherNameData ||
+            otherNameData.name != nameData.name
+        )
+            continue;
         return `${nameData.name}（${data.xuid2name(xuid)}）`;
     }
     return nameData.name;
@@ -175,15 +221,19 @@ ll.exports(getName, "UserName", "Get");
 ll.exports(getNameByXuid, "UserName", "GetFromXuid");
 ll.exports(
     (pl, name, doAddTime = true) => {
-        const nameData = db.get(pl.xuid) ?? {};
-        nameData.name = name;
-        nameData.times =
-            "times" in nameData
-                ? doAddTime
-                    ? nameData.times + 1
-                    : nameData.times
-                : 1;
-        db.set(pl.xuid, nameData);
+        const nameData = db.get(pl.xuid);
+        if (!nameData)
+            db.set(pl.xuid, { name: name, times: doAddTime ? 0 : 1 });
+        else {
+            nameData.name = name;
+            nameData.times =
+                "times" in nameData
+                    ? doAddTime
+                        ? nameData.times + 1
+                        : nameData.times
+                    : 1;
+            db.set(pl.xuid, nameData);
+        }
         setName(pl, name);
     },
     "UserName",
