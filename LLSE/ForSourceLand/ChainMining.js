@@ -98,7 +98,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
     let regex = undefined;
     let checkTileData = undefined;
     if ("undefined" in effectBlocks)
-        for (const rule of Object.keys(effectBlocks.undefined)) {
+        for (const rule in effectBlocks.undefined) {
             const reg = new RegExp(rule);
             if (
                 !reg.test(bl.type) ||
@@ -117,7 +117,7 @@ mc.listen("onDestroyBlock", (pl, bl) => {
         if (ench)
             for (const e of ench.toArray())
                 if (e.id in effectBlocks)
-                    for (const rule of Object.keys(effectBlocks[e.id])) {
+                    for (const rule in effectBlocks[e.id]) {
                         const reg = new RegExp(rule);
                         if (
                             !reg.test(bl.type) ||

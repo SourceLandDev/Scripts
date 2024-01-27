@@ -95,10 +95,11 @@ function main(pl) {
 }
 function redpacket(pl, key) {
     const rpdata = db.get(key);
+    const count = Object.keys(rpdata.recipient).length;
     if (
         pl.xuid != rpdata.sender &&
         !(pl.xuid in rpdata.recipient) &&
-        rpdata.count > Object.keys(rpdata.recipient).length
+        rpdata.count > count
     ) {
         rpdata.recipient[pl.xuid] = { time: system.getTimeStr() };
         db.set(key, rpdata);
@@ -108,7 +109,7 @@ function redpacket(pl, key) {
             `领取红包${rpdata.msg}成功（获得${rpdata.level}${eco.name}）`
         );
     }
-    if (Object.keys(rpdata.recipient).length >= rpdata.count) {
+    if (count >= rpdata.count) {
         for (const player of mc.getOnlinePlayers()) {
             if (player.xuid == pl.xuid) continue;
             player.tell(
