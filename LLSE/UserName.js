@@ -77,18 +77,13 @@ cmd.setup();
 mc.listen("onPreJoin", pl => {
     const nameData = db.get(pl.xuid);
     const name = nameData ? nameData.name : pl.realName;
-    for (const otherPl of mc.getOnlinePlayers()) {
-        const otherNameData = db.get(otherPl.xuid);
-        if (
-            otherPl.xuid == pl.xuid ||
-            !otherNameData ||
-            otherNameData.name != name
-        )
-            continue;
+    for (const player of mc.getOnlinePlayers()) {
+        const nd = db.get(player.xuid);
+        if (player.xuid == pl.xuid || !nd || nd.name != name) continue;
         if (name != pl.realName && name == pl.name)
             setName(pl, `${name}（${pl.realName}）`);
-        if (name != otherPl.realName && name == otherPl.name)
-            setName(otherPl, `${name}（${pl.realName}）`);
+        if (name != player.realName && name == player.name)
+            setName(player, `${name}（${pl.realName}）`);
     }
     setName(pl, name);
 });
@@ -96,16 +91,11 @@ mc.listen("onLeft", pl => {
     const nameData = db.get(pl.xuid);
     const name = nameData ? nameData.name : pl.realName;
     let pli;
-    for (const otherPl of mc.getOnlinePlayers()) {
-        const otherNameData = db.get(otherPl.xuid);
-        if (
-            otherPl.xuid == pl.xuid ||
-            !otherNameData ||
-            otherNameData.name != name
-        )
-            continue;
+    for (const player of mc.getOnlinePlayers()) {
+        const nd = db.get(player.xuid);
+        if (player.xuid == pl.xuid || !nd || nd.name != name) continue;
         if (pli) return;
-        pli = otherPl;
+        pli = player;
     }
     if (pli) setName(pli, name);
 });
@@ -125,14 +115,14 @@ function main(pl, def) {
             const nameData = db.get(pl.xuid);
             let total = 0;
             let conflict = false;
-            for (const pl of mc.getOnlinePlayers()) {
-                total += eco.get(pl);
-                const otherNameData = db.get(otherPl.xuid);
+            for (const player of mc.getOnlinePlayers()) {
+                total += eco.get(player);
+                const nd = db.get(player.xuid);
                 if (
                     conflict ||
-                    otherPl.xuid == pl.xuid ||
-                    !otherNameData ||
-                    otherNameData.name != args[0]
+                    player.xuid == pl.xuid ||
+                    !nd ||
+                    nd.name != args[0]
                 )
                     continue;
                 conflict = true;
@@ -190,14 +180,9 @@ function setName(pl, name) {
 function getName(pl) {
     const nameData = db.get(pl.xuid);
     if (!nameData) return pl.realName;
-    for (const otherPl of mc.getOnlinePlayers()) {
-        const otherNameData = db.get(otherPl.xuid);
-        if (
-            otherPl.xuid == pl.xuid ||
-            !otherNameData ||
-            otherNameData.name != nameData.name
-        )
-            continue;
+    for (const player of mc.getOnlinePlayers()) {
+        const nd = db.get(player.xuid);
+        if (player.xuid == pl.xuid || !nd || nd.name != nameData.name) continue;
         return `${nameData.name}（${pl.realName}）`;
     }
     return nameData.name;
@@ -205,14 +190,9 @@ function getName(pl) {
 function getNameByXuid(xuid) {
     const nameData = db.get(xuid);
     if (!nameData) return data.xuid2name(xuid);
-    for (const otherPl of mc.getOnlinePlayers()) {
-        const otherNameData = db.get(otherPl.xuid);
-        if (
-            otherPl.xuid == xuid ||
-            !otherNameData ||
-            otherNameData.name != nameData.name
-        )
-            continue;
+    for (const player of mc.getOnlinePlayers()) {
+        const nd = db.get(player.xuid);
+        if (player.xuid == xuid || !nd || nd.name != nameData.name) continue;
         return `${nameData.name}（${data.xuid2name(xuid)}）`;
     }
     return nameData.name;
