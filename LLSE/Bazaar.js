@@ -175,7 +175,8 @@ mc.listen("onJoin", pl => {
                 Damage: new NbtShort(ut.item.damage),
                 Count: new NbtByte(1)
             };
-            if (ut.item.ench) nbtData.ench = new NbtCompound(ut.item.ench);
+            if (ut.item.ench && Object.keys(ut.item.ench).length > 0)
+                nbtData.ench = new NbtCompound(ut.item.ench);
             const item = mc.newItem(new NbtCompound(nbtData));
             pl.giveItem(item, ut.count);
             pl.sendToast(
@@ -312,7 +313,8 @@ function browseOfferTypes(pl) {
             Damage: new NbtShort(offer.data),
             Count: new NbtByte(1)
         };
-        if (offer.ench) nbtData.ench = new NbtCompound(offer.ench);
+        if (offer.ench && Object.keys(offer.ench).length > 0)
+            nbtData.ench = new NbtCompound(offer.ench);
         const item = mc.newItem(new NbtCompound(nbtData));
         const name = item.name;
         item.setNull();
@@ -348,7 +350,8 @@ function browseOffers(pl, type) {
             Damage: new NbtShort(offer.data),
             Count: new NbtByte(1)
         };
-        if (offer.ench) nbtData.ench = new NbtCompound(offer.ench);
+        if (offer.ench && Object.keys(offer.ench).length > 0)
+            nbtData.ench = new NbtCompound(offer.ench);
         const item = mc.newItem(new NbtCompound(nbtData));
         const name = item.name;
         const aux = item.aux;
@@ -397,7 +400,7 @@ function offersManagement(pl) {
             Damage: new NbtShort(offers[uuid].data),
             Count: new NbtByte(1)
         };
-        if (offers[uuid].ench)
+        if (offers[uuid].ench && Object.keys(offers[uuid].ench).length > 0)
             nbtData.ench = new NbtCompound(offers[uuid].ench);
         const item = mc.newItem(new NbtCompound(nbtData));
         const name = item.name;
@@ -512,7 +515,8 @@ function offerProcess(pl, uuid) {
         Damage: new NbtShort(offers[uuid].data),
         Count: new NbtByte(1)
     };
-    if (offers[uuid].ench) nbtData.ench = new NbtCompound(offers[uuid].ench);
+    if (offers[uuid].ench && Object.keys(offers[uuid].ench).length > 0)
+        nbtData.ench = new NbtCompound(offers[uuid].ench);
     const item = mc.newItem(new NbtCompound(nbtData));
     let itemCount = 0;
     for (const invItem of pl.getInventory().getAllItems()) {
