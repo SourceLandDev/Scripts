@@ -159,13 +159,10 @@ cmd.setCallback((_cmd, ori, out, _res) => {
 cmd.setup();
 mc.listen("onJoin", pl => {
     const sellers = db.get("sellers") ?? {};
-    if (!(pl.xuid in sellers)) {
-        sellers[pl.xuid] = {
-            items: [],
-            offers: [],
-            unprocessedTransactions: []
-        };
-        db.set("sellers", sellers);
+    if (
+        !(pl.xuid in sellers) ||
+        sellers[pl.xuid].unprocessedTransactions.length <= 0
+    ) {
         return;
     }
     for (const ut of sellers[pl.xuid].unprocessedTransactions) {
@@ -179,10 +176,7 @@ mc.listen("onJoin", pl => {
                 nbtData.ench = new NbtCompound(ut.item.ench);
             const item = mc.newItem(new NbtCompound(nbtData));
             pl.giveItem(item, ut.count);
-            pl.sendToast(
-                "集市",
-                `报价被处理（您获得了${item.name}*${ut.count}）`
-            );
+            pl.sendToast("集市", `报价被处理（获得${item.name}×${ut.count}）`);
         }
         if (ut.price) {
             let total = 0;
@@ -192,8 +186,10 @@ mc.listen("onJoin", pl => {
                     ut.count *
                     (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
             );
-            eco.add(pl, get);
-            pl.sendToast("集市", `物品被购买（您获得了${get}${eco.name}）`);
+            if (get > 0) {
+                eco.add(pl, get);
+                pl.sendToast("集市", `物品被购买（获得${get}${eco.name}）`);
+            }
         }
         sellers[pl.xuid].unprocessedTransactions.splice(
             sellers[pl.xuid].unprocessedTransactions.indexOf(ut),
@@ -216,6 +212,7 @@ function main(pl) {
                 `出售${
                     itemsCount > 0
                         ? `\n${
+                              pl.xuid in sellers &&
                               sellers[pl.xuid].items.length > 0
                                   ? `${sellers[pl.xuid].items.length}/`
                                   : ""
@@ -227,6 +224,7 @@ function main(pl) {
                 `回收${
                     offersCount > 0
                         ? `\n${
+                              pl.xuid in sellers &&
                               sellers[pl.xuid].offers.length > 0
                                   ? `${sellers[pl.xuid].offers.length}/`
                                   : ""
@@ -266,7 +264,7 @@ function browseItemTypes(pl) {
     }
     for (const type in types)
         fm.addButton(
-            `${types[type].name}*${types[type].count}\n${types[type].price}${eco.name}/个`
+            `${types[type].name}×${types[type].count}\n${types[type].price}${eco.name}/个`
         );
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
@@ -287,7 +285,9 @@ function browseItems(pl, type) {
         newItem.setNull();
         if (realType != type || item.seller == pl.xuid) continue;
         fm.addButton(
-            `${name}（${aux}）*${item.count}\n${item.price}${eco.name}/个`
+            `${name}${aux == 0 ? "" : `（${aux}）`}×${item.count}\n${
+                item.price
+            }${eco.name}/个`
         );
         realItems.push(key);
     }
@@ -330,7 +330,7 @@ function browseOfferTypes(pl) {
     }
     for (const type in types)
         fm.addButton(
-            `${types[type].name}*${types[type].count}\n${types[type].price}${eco.name}/个`
+            `${types[type].name}×${types[type].count}\n${types[type].price}${eco.name}/个`
         );
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return main(pl);
@@ -357,7 +357,9 @@ function browseOffers(pl, type) {
         const aux = item.aux;
         item.setNull();
         fm.addButton(
-            `${name}（${aux}）*${offer.count}\n${offer.price}${eco.name}/个`
+            `${name}${aux == 0 ? "" : `（${aux}）`}×${offer.count}\n${
+                offer.price
+            }${eco.name}/个`
         );
         realOffers.push(key);
     }
@@ -375,15 +377,18 @@ function itemsManagement(pl) {
     const fm = mc.newSimpleForm().setTitle("物品管理").addButton("上架物品");
     const sellers = db.get("sellers") ?? {};
     const items = db.get("items") ?? {};
-    for (const uuid of sellers[pl.xuid].items) {
-        const newItem = mc.newItem(NBT.parseSNBT(items[uuid].snbt));
-        const name = newItem.name;
-        const aux = newItem.aux;
-        newItem.setNull();
-        fm.addButton(
-            `${name}（${aux}）*${items[uuid].count}\n${items[uuid].price}${eco.name}/个`
-        );
-    }
+    if (pl.xuid in sellers)
+        for (const uuid of sellers[pl.xuid].items) {
+            const newItem = mc.newItem(NBT.parseSNBT(items[uuid].snbt));
+            const name = newItem.name;
+            const aux = newItem.aux;
+            newItem.setNull();
+            fm.addButton(
+                `${name}${aux == 0 ? "" : `（${aux}）`}×${items[uuid].count}\n${
+                    items[uuid].price
+                }${eco.name}/个`
+            );
+        }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return browseItemTypes(pl);
         if (arg <= 0) return itemUpload(pl);
@@ -394,22 +399,25 @@ function offersManagement(pl) {
     const fm = mc.newSimpleForm().setTitle("报价管理").addButton("创建报价");
     const sellers = db.get("sellers") ?? {};
     const offers = db.get("offers") ?? {};
-    for (const uuid of sellers[pl.xuid].offers) {
-        const nbtData = {
-            Name: new NbtString(offers[uuid].type),
-            Damage: new NbtShort(offers[uuid].data),
-            Count: new NbtByte(1)
-        };
-        if (offers[uuid].ench && Object.keys(offers[uuid].ench).length > 0)
-            nbtData.ench = new NbtCompound(offers[uuid].ench);
-        const item = mc.newItem(new NbtCompound(nbtData));
-        const name = item.name;
-        const aux = item.aux;
-        item.setNull();
-        fm.addButton(
-            `${name}（${aux}）*${offers[uuid].count}\n${offers[uuid].price}${eco.name}/个`
-        );
-    }
+    if (pl.xuid in sellers)
+        for (const uuid of sellers[pl.xuid].offers) {
+            const nbtData = {
+                Name: new NbtString(offers[uuid].type),
+                Damage: new NbtShort(offers[uuid].data),
+                Count: new NbtByte(1)
+            };
+            if (offers[uuid].ench && Object.keys(offers[uuid].ench).length > 0)
+                nbtData.ench = new NbtCompound(offers[uuid].ench);
+            const item = mc.newItem(new NbtCompound(nbtData));
+            const name = item.name;
+            const aux = item.aux;
+            item.setNull();
+            fm.addButton(
+                `${name}${aux == 0 ? "" : `（${aux}）`}×${
+                    offers[uuid].count
+                }\n${offers[uuid].price}${eco.name}/个`
+            );
+        }
     pl.sendForm(fm, (pl, arg) => {
         if (arg == null) return browseOfferTypes(pl);
         if (arg <= 0) return offerCreate(pl);
@@ -465,6 +473,7 @@ function itemBuy(pl, uuid) {
             pl.sendToast("集市", "§c物品购买失败：余额不足");
             return browseItemTypes(pl);
         }
+        if (cost > 0) eco.reduce(pl, cost);
         const seller = nowItems[uuid].seller;
         const sellers = db.get("sellers") ?? {};
         if (nowItems[uuid].count <= num) {
@@ -474,7 +483,6 @@ function itemBuy(pl, uuid) {
                 1
             );
         } else nowItems[uuid].count -= num;
-        eco.reduce(pl, cost);
         pl.giveItem(mc.newItem(itemNBT), num);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
@@ -485,18 +493,20 @@ function itemBuy(pl, uuid) {
                     price *
                     (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
             );
-            eco.add(sellerObj, get);
-            sellerObj.sendToast(
-                "集市",
-                `物品被购买（您获得了${get}${eco.name}）`
-            );
+            if (get > 0) {
+                eco.add(sellerObj, get);
+                sellerObj.sendToast(
+                    "集市",
+                    `物品被购买（获得${get}${eco.name}）`
+                );
+            }
         } else
             sellers[seller].unprocessedTransactions.push({
                 price: price,
                 count: num
             });
-        db.set("sellers", sellers);
         db.set("items", nowItems);
+        db.set("sellers", sellers);
         pl.sendToast(
             "集市",
             `物品购买成功${cost > 0 ? `（花费${cost}${eco.name}）` : ""}`
@@ -588,13 +598,12 @@ function offerProcess(pl, uuid) {
                 price *
                 (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
         );
-        eco.add(pl, get);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
             sellerObj.giveItem(item, num);
             sellerObj.sendToast(
                 "集市",
-                `报价被处理（您获得了${item.name}*${num}）`
+                `报价被处理（获得${item.name}×${num}）`
             );
         } else
             sellers[seller].unprocessedTransactions.push({
@@ -605,9 +614,10 @@ function offerProcess(pl, uuid) {
                 },
                 count: num
             });
-        db.set("sellers", sellers);
         db.set("offers", nowOffers);
-        pl.sendToast("集市", `报价处理成功（您获得了${get}${eco.name}）`);
+        db.set("sellers", sellers);
+        if (get > 0) eco.add(pl, get);
+        pl.sendToast("集市", `报价处理成功（获得${get}${eco.name}）`);
         return browseOfferTypes(pl);
     });
 }
@@ -643,7 +653,9 @@ function itemUpload(pl, args = [0, "", 1]) {
         if (/potion/.test(itemNBT.getData("Name")))
             msg += ` ${eff[itemNBT.getTag("Damage")]}`;
         namesOfItem.push(
-            `${item.item.name}（${item.item.type} ${item.item.aux}${msg}）*${item.count}`
+            `${item.item.name}（${item.item.type}:${
+                item.item.aux == 0 ? "" : item.item.aux
+            }${msg}）×${item.count}`
         );
         if (max < item.count) max = item.count;
     }
@@ -652,7 +664,7 @@ function itemUpload(pl, args = [0, "", 1]) {
         .setTitle("上架物品")
         .addDropdown("物品", namesOfItem, args[0])
         .addInput("价格", "正实型", args[1]);
-    if (max < 2) fm.addLabel("数量：1");
+    if (max <= 1) fm.addLabel("数量：1");
     else fm.addSlider("数量", 1, max, 1, args[2]);
     pl.sendForm(fm, (pl, args) => {
         if (!args) return itemsManagement(pl);
@@ -665,7 +677,7 @@ function itemUpload(pl, args = [0, "", 1]) {
             pl.sendToast("集市", "§c物品上架失败：无效价格");
             return itemUpload(pl, args);
         }
-        let num = Number(args[2] ?? 1);
+        const num = Number(args[2] ?? 1);
         const invItems = pl.getInventory().getAllItems();
         let itemCount = 0;
         for (const invItem of invItems) {
@@ -677,8 +689,6 @@ function itemUpload(pl, args = [0, "", 1]) {
             pl.sendToast("集市", "§c物品上架失败：物品不足");
             return itemUpload(pl, args);
         }
-        const items = db.get("items") ?? {};
-        const uuid = system.randomGuid();
         let testedTimes = 0;
         let snbt = itemData[args[0]].item.getNbt().toSNBT();
         while (!NBT.parseSNBT(snbt)) {
@@ -689,30 +699,39 @@ function itemUpload(pl, args = [0, "", 1]) {
             snbt = itemData[args[0]].item.getNbt().toSNBT();
             ++testedTimes;
         }
-        items[uuid] = {
-            snbt: snbt,
-            count: num,
-            price: Number(args[1]),
-            seller: pl.xuid
-        };
+        let count = num;
         for (const invItem of invItems) {
-            if (num <= 0) break;
+            if (count <= 0) break;
             if (invItem.isNull()) continue;
             if (invItem.match(itemData[args[0]].item)) {
-                if (invItem.count <= num) {
-                    num -= invItem.count;
+                if (invItem.count <= count) {
+                    count -= invItem.count;
                     invItem.setNull();
                     continue;
                 }
                 invItem.setNbt(
                     invItem
                         .getNbt()
-                        .setByte("Count", Number(invItem.count - num))
+                        .setByte("Count", Number(invItem.count - count))
                 );
             }
         }
         pl.refreshItems();
+        const items = db.get("items") ?? {};
+        const uuid = system.randomGuid();
+        items[uuid] = {
+            snbt: snbt,
+            count: num,
+            price: Number(args[1]),
+            seller: pl.xuid
+        };
         const sellers = db.get("sellers") ?? {};
+        if (!(pl.xuid in sellers))
+            sellers[pl.xuid] = {
+                items: [],
+                offers: [],
+                unprocessedTransactions: []
+            };
         sellers[pl.xuid].items.push(uuid);
         db.set("items", items);
         db.set("sellers", sellers);
@@ -772,6 +791,7 @@ function offerCreate(pl, args = ["", "0", "", "", ""]) {
                 pl.sendToast("集市", "§c报价创建失败：余额不足");
                 return offerCreate(pl, args);
             }
+            if (cost > 0) eco.reduce(pl, cost);
             const offers = db.get("offers") ?? {};
             const uuid = system.randomGuid();
             offers[uuid] = {
@@ -789,11 +809,16 @@ function offerCreate(pl, args = ["", "0", "", "", ""]) {
                     offers[uuid].ench[dt2[0]] = dt2[1];
                 }
             }
-            db.set("offers", offers);
             const sellers = db.get("sellers") ?? {};
+            if (!(pl.xuid in sellers))
+                sellers[pl.xuid] = {
+                    items: [],
+                    offers: [],
+                    unprocessedTransactions: []
+                };
             sellers[pl.xuid].offers.push(uuid);
+            db.set("offers", offers);
             db.set("sellers", sellers);
-            eco.reduce(pl, cost);
             pl.sendToast(
                 "集市",
                 `报价创建成功${cost > 0 ? `（花费${cost}${eco.name}）` : ""}`
@@ -832,19 +857,19 @@ function itemTakedown(pl, uuid) {
                 );
                 return itemsManagement(pl);
             }
+            if (cost > 0) eco.reduce(pl, cost);
             const sellers = db.get("sellers") ?? {};
             sellers[pl.xuid].items.splice(
                 sellers[pl.xuid].items.indexOf(uuid),
                 1
             );
-            eco.reduce(pl, cost);
             pl.giveItem(
                 mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt)),
                 nowItems[uuid].count
             );
             delete nowItems[uuid];
-            db.set("sellers", sellers);
             db.set("items", nowItems);
+            db.set("sellers", sellers);
             pl.sendToast(
                 "集市",
                 `物品下架成功${cost > 0 ? `（花费${cost}${eco.name}）` : ""}`
@@ -882,18 +907,19 @@ function offerWithdrawal(pl, uuid) {
             );
             let total = 0;
             for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
-            eco.add(
-                pl,
-                Math.round(
-                    nowOffers[uuid].price *
-                        nowOffers[uuid].count *
-                        (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
-                )
+            const money = Math.round(
+                nowOffers[uuid].price *
+                    nowOffers[uuid].count *
+                    (1 - total / 10 ** (Math.floor(Math.log10(total)) + 2))
             );
             delete nowOffers[uuid];
-            db.set("sellers", sellers);
             db.set("offers", nowOffers);
-            pl.sendToast("集市", "报价撤回成功");
+            db.set("sellers", sellers);
+            if (money > 0) eco.add(pl, money);
+            pl.sendToast(
+                "集市",
+                `报价撤回成功${money > 0 ? `（退回${money}${eco.name}）` : ""}`
+            );
             return offersManagement(pl);
         }
     );

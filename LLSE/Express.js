@@ -96,7 +96,7 @@ function main(pl) {
         if (item.isNull()) continue;
         fm.addSlider(
             `[${inventoryItems.indexOf(item)}] ${item.name}§r（${item.type}:${
-                item.aux
+                item.aux == 0 ? "" : item.aux
             }）`,
             0,
             item.count
@@ -140,7 +140,7 @@ function main(pl) {
             if (item.count < num) {
                 pl.sendToast(
                     "物流",
-                    `§c${item.name}§r*${num}送达失败：数量不足`
+                    `§c${item.name}§r×${num}送达失败：数量不足`
                 );
                 continue;
             }
@@ -165,8 +165,8 @@ function main(pl) {
         );
         pl1.tell(`您收到了以下物品：`);
         for (const item of sendItems) {
-            pl.tell(`${item.name}§r*${item.count}`);
-            pl1.tell(`${item.name}§r*${item.count}`);
+            pl.tell(`${item.name}§r×${item.count}`);
+            pl1.tell(`${item.name}§r×${item.count}`);
         }
     });
 }
