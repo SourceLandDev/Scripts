@@ -278,18 +278,23 @@ function browseItems(pl, type) {
     const realItems = [];
     for (const key in items) {
         const item = items[key];
+        const itemNBT = NBT.parseSNBT(item.snbt);
+        const realType = itemNBT.getTag("Name").get();
+        if (realType != type || item.seller == pl.xuid) continue;
+        realItems.push(key);
+    }
+    realItems.sort((item1, item2) => items[item1].price - items[item2].price);
+    for (const key of realItems) {
+        const item = items[key];
         const newItem = mc.newItem(NBT.parseSNBT(item.snbt));
         const name = newItem.name;
-        const realType = newItem.type;
         const aux = newItem.aux;
         newItem.setNull();
-        if (realType != type || item.seller == pl.xuid) continue;
         fm.addButton(
             `${name}${aux == 0 ? "" : `（${aux}）`}×${item.count}\n${
                 item.price
             }${eco.name}/个`
         );
-        realItems.push(key);
     }
     if (realItems.length <= 0) {
         pl.sendToast("集市", "§c物品购买失败：已下线");
@@ -345,6 +350,13 @@ function browseOffers(pl, type) {
     for (const key in offers) {
         const offer = offers[key];
         if (offer.type != type || offer.seller == pl.xuid) continue;
+        realOffers.push(key);
+    }
+    realOffers.sort(
+        (offer1, offer2) => offers[offer2].price - offers[offer1].price
+    );
+    for (const key of realOffers) {
+        const offer = offers[key];
         const nbtData = {
             Name: new NbtString(offer.type),
             Damage: new NbtShort(offer.data),
@@ -361,7 +373,6 @@ function browseOffers(pl, type) {
                 offer.price
             }${eco.name}/个`
         );
-        realOffers.push(key);
     }
     if (realOffers.length <= 0) {
         pl.sendToast("集市", "§c物品购买失败：已下线");
