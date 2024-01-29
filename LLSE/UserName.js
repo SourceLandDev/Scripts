@@ -80,9 +80,8 @@ mc.listen("onPreJoin", pl => {
     for (const player of mc.getOnlinePlayers()) {
         const nd = db.get(player.xuid);
         if (player.xuid == pl.xuid || !nd || nd.name != name) continue;
-        if (name != pl.realName && name == pl.name)
-            setName(pl, `${name}（${pl.realName}）`);
-        if (name != player.realName && name == player.name)
+        if (name != pl.realName) setName(pl, `${name}（${pl.realName}）`);
+        if (name != player.realName)
             setName(player, `${name}（${pl.realName}）`);
     }
     setName(pl, name);
