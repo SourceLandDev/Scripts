@@ -34,7 +34,7 @@ English:
 ll.registerPlugin("DeathTax", "死亡税", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/DeathTax/config.json");
-const tax = config.init("tax", { min: 0, max: 3 });
+const tax = config.init("tax", 1 / 9);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -65,13 +65,9 @@ const eco = (() => {
 })();
 config.close();
 mc.listen("onPlayerDie", pl => {
-    let total = 0;
-    for (const pl of mc.getOnlinePlayers()) total += eco.get(pl);
-    const condition =
-        tax.max * (1 + total / 10 ** (Math.floor(Math.log10(total)) + 2));
-    let reduce = Math.round(Math.random() * (tax.min - condition) + condition);
     const money = eco.get(pl);
-    if (reduce > money + 1) reduce = money + 1;
+    const condition = money * tax + 1;
+    let reduce = Math.round(condition - Math.random() * condition);
     eco.reduce(pl, reduce);
     pl.tell(`扣除${reduce}${eco.name}`);
 });

@@ -35,7 +35,7 @@ ll.registerPlugin("UserName", "用户名", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/UserName/config.json");
 const command = config.init("command", "rename");
-const serviceCharge = config.init("serviceCharge", { min: 0, max: 3 });
+const serviceCharge = config.init("serviceCharge", 1 / 9);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -112,10 +112,8 @@ function main(pl, def) {
         (pl, args) => {
             if (!args) return;
             const nameData = db.get(pl.xuid);
-            let total = 0;
             let conflict = false;
             for (const player of mc.getOnlinePlayers()) {
-                total += eco.get(player);
                 const nd = db.get(player.xuid);
                 if (
                     conflict ||
@@ -126,12 +124,12 @@ function main(pl, def) {
                     continue;
                 conflict = true;
             }
-            const condition =
-                serviceCharge.max *
-                (1 +
-                    (nameData ? nameData.times : 0) *
-                        (total / 10 ** (Math.floor(Math.log10(total)) + 2)));
-            if (eco.get(pl) < condition) {
+            const money = eco.get(pl);
+            let condition = 0;
+            for (let i = 1; i < nameData.times; ++i) {
+                condition += (money * serviceCharge) / i;
+            }
+            if (money < ++condition) {
                 pl.sendToast(
                     "重命名",
                     `§c修改失败：余额不足（需要${Math.round(condition)}${
@@ -145,13 +143,11 @@ function main(pl, def) {
                     pl.sendToast("重命名", `§c修改失败：${reg.message}`);
                     return main(pl, args[0]);
                 }
-            const reduce = Math.round(
-                Math.random() * (serviceCharge.min - condition) + condition
-            );
+            const reduce = Math.round(condition - Math.random() * condition);
             eco.reduce(pl, reduce);
             db.set(pl.xuid, {
                 name: args[0],
-                times: (nameData ? nameData.times : 0) + 1
+                times: nameData ? nameData.times + 1 : 1
             });
             setName(pl, conflict ? `${args[0]}（${pl.realName}）` : args[0]);
             pl.sendToast(

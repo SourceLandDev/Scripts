@@ -35,7 +35,7 @@ ll.registerPlugin("Express", "物流", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Express/config.json");
 const command = config.init("command", "express");
-const serviceCharge = config.init("serviceCharge", { min: 0, max: 3 });
+const serviceCharge = config.init("serviceCharge", 1 / 9);
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -108,15 +108,12 @@ function main(pl) {
         if (!args) return;
         let totalNum = 0;
         for (const num of args) totalNum += num;
-        let totalMoney = 0;
-        for (const pl of mc.getOnlinePlayers()) totalMoney += eco.get(pl);
-        const condition =
-            serviceCharge.max *
-            (1 +
-                totalNum *
-                    (totalMoney /
-                        10 ** (Math.floor(Math.log10(totalMoney)) + 2)));
-        if (eco.get(pl) < condition) {
+        const money = eco.get(pl);
+        let condition = 0;
+        for (let i = 1; i < totalNum; ++i) {
+            condition += (money * serviceCharge) / i;
+        }
+        if (eco.get(pl) < ++condition) {
             pl.sendToast(
                 "物流",
                 `§c送达失败：余额不足（需要${Math.round(condition)}${
@@ -129,9 +126,7 @@ function main(pl) {
         if (!pl1)
             return pl.sendToast("物流", `§c送达失败：${plnms[args[0]]}已离线`);
         args.shift();
-        const reduce = Math.round(
-            Math.random() * (serviceCharge.min - condition) + condition
-        );
+        const reduce = Math.round(condition - Math.random() * condition);
         const sendItems = [];
         for (const index in args) {
             const num = Math.round(args[index]);
