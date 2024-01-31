@@ -31,7 +31,7 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 10]);
+ll.registerPlugin("Bazaar", "集市", [2, 0, 11]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -162,19 +162,32 @@ mc.listen("onJoin", pl => {
     if (
         !(pl.xuid in sellers) ||
         sellers[pl.xuid].unprocessedTransactions.length <= 0
-    ) {
+    )
         return;
-    }
     for (const ut of sellers[pl.xuid].unprocessedTransactions) {
         if (ut.item) {
-            const nbtData = {
+            const nbt = new NbtCompound({
                 Name: new NbtString(ut.item.name),
                 Damage: new NbtShort(ut.item.damage),
                 Count: new NbtByte(1)
-            };
-            if (ut.item.ench && Object.keys(ut.item.ench).length > 0)
-                nbtData.ench = new NbtCompound(ut.item.ench);
-            const item = mc.newItem(new NbtCompound(nbtData));
+            });
+            if (ut.item.ench && ut.item.ench.length > 0) {
+                const enchList = new NbtList();
+                for (const enchantment of ut.item.ench)
+                    enchList.addTag(
+                        new NbtCompound({
+                            id: new NbtShort(Number(enchantment.id)),
+                            lvl: new NbtShort(Number(enchantment.lvl))
+                        })
+                    );
+                nbt.setTag(
+                    "tag",
+                    new NbtCompound({
+                        ench: enchList
+                    })
+                );
+            }
+            const item = mc.newItem(nbt);
             pl.giveItem(item, ut.count);
             pl.sendToast("集市", `报价被处理（获得${item.name}×${ut.count}）`);
         }
@@ -313,14 +326,28 @@ function browseOfferTypes(pl) {
     for (const key in offers) {
         const offer = offers[key];
         if (offer.seller == pl.xuid) continue;
-        const nbtData = {
+        const nbt = new NbtCompound({
             Name: new NbtString(offer.type),
             Damage: new NbtShort(offer.data),
             Count: new NbtByte(1)
-        };
-        if (offer.ench && Object.keys(offer.ench).length > 0)
-            nbtData.ench = new NbtCompound(offer.ench);
-        const item = mc.newItem(new NbtCompound(nbtData));
+        });
+        if (offer.ench && offer.ench.length > 0) {
+            const enchList = new NbtList();
+            for (const enchantment of offer.ench)
+                enchList.addTag(
+                    new NbtCompound({
+                        id: new NbtShort(Number(enchantment.id)),
+                        lvl: new NbtShort(Number(enchantment.lvl))
+                    })
+                );
+            nbt.setTag(
+                "tag",
+                new NbtCompound({
+                    ench: enchList
+                })
+            );
+        }
+        const item = mc.newItem(nbt);
         const name = item.name;
         item.setNull();
         if (!(offer.type in types))
@@ -357,14 +384,28 @@ function browseOffers(pl, type) {
     );
     for (const key of realOffers) {
         const offer = offers[key];
-        const nbtData = {
+        const nbt = new NbtCompound({
             Name: new NbtString(offer.type),
             Damage: new NbtShort(offer.data),
             Count: new NbtByte(1)
-        };
-        if (offer.ench && Object.keys(offer.ench).length > 0)
-            nbtData.ench = new NbtCompound(offer.ench);
-        const item = mc.newItem(new NbtCompound(nbtData));
+        });
+        if (offer.ench && offer.ench.length > 0) {
+            const enchList = new NbtList();
+            for (const enchantment of offer.ench)
+                enchList.addTag(
+                    new NbtCompound({
+                        id: new NbtShort(Number(enchantment.id)),
+                        lvl: new NbtShort(Number(enchantment.lvl))
+                    })
+                );
+            nbt.setTag(
+                "tag",
+                new NbtCompound({
+                    ench: enchList
+                })
+            );
+        }
+        const item = mc.newItem(nbt);
         const name = item.name;
         const aux = item.aux;
         item.setNull();
@@ -412,14 +453,28 @@ function offersManagement(pl) {
     const offers = db.get("offers") ?? {};
     if (pl.xuid in sellers)
         for (const uuid of sellers[pl.xuid].offers) {
-            const nbtData = {
+            const nbt = new NbtCompound({
                 Name: new NbtString(offers[uuid].type),
                 Damage: new NbtShort(offers[uuid].data),
                 Count: new NbtByte(1)
-            };
-            if (offers[uuid].ench && Object.keys(offers[uuid].ench).length > 0)
-                nbtData.ench = new NbtCompound(offers[uuid].ench);
-            const item = mc.newItem(new NbtCompound(nbtData));
+            });
+            if (offers[uuid].ench && offers[uuid].ench.length > 0) {
+                const enchList = new NbtList();
+                for (const enchantment of offers[uuid].ench)
+                    enchList.addTag(
+                        new NbtCompound({
+                            id: new NbtShort(Number(enchantment.id)),
+                            lvl: new NbtShort(Number(enchantment.lvl))
+                        })
+                    );
+                nbt.setTag(
+                    "tag",
+                    new NbtCompound({
+                        ench: enchList
+                    })
+                );
+            }
+            const item = mc.newItem(nbt);
             const name = item.name;
             const aux = item.aux;
             item.setNull();
@@ -531,14 +586,28 @@ function offerProcess(pl, uuid) {
         pl.sendToast("集市", "§c报价处理失败：已下线");
         return browseOfferTypes(pl);
     }
-    const nbtData = {
+    const nbt = new NbtCompound({
         Name: new NbtString(offers[uuid].type),
         Damage: new NbtShort(offers[uuid].data),
         Count: new NbtByte(1)
-    };
-    if (offers[uuid].ench && Object.keys(offers[uuid].ench).length > 0)
-        nbtData.ench = new NbtCompound(offers[uuid].ench);
-    const item = mc.newItem(new NbtCompound(nbtData));
+    });
+    if (offers[uuid].ench && offers[uuid].ench.length > 0) {
+        const enchList = new NbtList();
+        for (const enchantment of offers[uuid].ench)
+            enchList.addTag(
+                new NbtCompound({
+                    id: new NbtShort(Number(enchantment.id)),
+                    lvl: new NbtShort(Number(enchantment.lvl))
+                })
+            );
+        nbt.setTag(
+            "tag",
+            new NbtCompound({
+                ench: enchList
+            })
+        );
+    }
+    const item = mc.newItem(nbt);
     let itemCount = 0;
     for (const invItem of pl.getInventory().getAllItems()) {
         if (invItem.isNull()) continue;
@@ -764,7 +833,7 @@ function offerCreate(pl, args = ["", "0", "", "", ""]) {
             .addInput("数量", "正整型", args[2])
             .addInput("价格", "正实型", args[3])
             .addInput(
-                "附魔",
+                "附魔（例：锋利:1,耐久:1）",
                 "键值对（键值冒号分隔，元素逗号分隔，可空）",
                 args[4]
             ),
@@ -813,11 +882,17 @@ function offerCreate(pl, args = ["", "0", "", "", ""]) {
                 seller: pl.xuid
             };
             if (args[4]) {
-                offers[uuid].ench = {};
+                offers[uuid].ench = [];
                 const dt1 = args[4].split(/,[\s]?/);
                 for (const dat of dt1) {
                     const dt2 = dat.split(":");
-                    offers[uuid].ench[dt2[0]] = dt2[1];
+                    if (dt2[1] < 1) continue;
+                    let id = ench.indexOf(dt2[0]);
+                    if (id < 0) {
+                        if (isNaN(dt2[0])) continue;
+                        id = dt2[0];
+                    }
+                    offers[uuid].ench.push({ id: id, lvl: dt2[1] });
                 }
             }
             const sellers = db.get("sellers") ?? {};
