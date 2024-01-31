@@ -126,9 +126,8 @@ function main(pl, def) {
             }
             const money = eco.get(pl);
             let condition = 0;
-            for (let i = 1; i < nameData.times; ++i) {
+            for (let i = 1; i < nameData.times; ++i)
                 condition += (money * serviceCharge) / i;
-            }
             if (money < ++condition) {
                 pl.sendToast(
                     "重命名",

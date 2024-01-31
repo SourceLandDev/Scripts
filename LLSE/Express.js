@@ -110,9 +110,8 @@ function main(pl) {
         for (const num of args) totalNum += num;
         const money = eco.get(pl);
         let condition = 0;
-        for (let i = 1; i < totalNum; ++i) {
+        for (let i = 1; i < totalNum; ++i)
             condition += (money * serviceCharge) / i;
-        }
         if (eco.get(pl) < ++condition) {
             pl.sendToast(
                 "物流",
