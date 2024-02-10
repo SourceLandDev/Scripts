@@ -189,7 +189,12 @@ mc.listen("onJoin", pl => {
                 );
             }
             const item = mc.newItem(nbt);
-            pl.giveItem(item, ut.count);
+            let count = ut.count;
+            while (count > 64) {
+                pl.giveItem(item, 64);
+                count -= 64;
+            }
+            if (count > 0) pl.giveItem(item, count);
             pl.sendToast("集市", `报价被处理（获得${item.name}×${ut.count}）`);
         }
         if (ut.price) {
@@ -550,7 +555,12 @@ function itemBuy(pl, uuid) {
                 1
             );
         } else nowItems[uuid].count -= num;
-        pl.giveItem(mc.newItem(itemNBT), num);
+        let count = num;
+        while (count > 64) {
+            pl.giveItem(mc.newItem(itemNBT), 64);
+            count -= 64;
+        }
+        if (count > 0) pl.giveItem(mc.newItem(itemNBT), count);
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
             let total = 0;
@@ -681,7 +691,12 @@ function offerProcess(pl, uuid) {
         );
         const sellerObj = mc.getPlayer(seller);
         if (sellerObj) {
-            sellerObj.giveItem(item, num);
+            let count = num;
+            while (count > 64) {
+                sellerObj.giveItem(item, 64);
+                count -= 64;
+            }
+            if (count > 0) sellerObj.giveItem(item, count);
             sellerObj.sendToast(
                 "集市",
                 `报价被处理（获得${item.name}×${num}）`
