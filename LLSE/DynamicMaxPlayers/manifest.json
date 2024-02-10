@@ -1,0 +1,10 @@
+{
+    "entry": "DynamicMaxPlayers.js",
+    "name": "DynamicMaxPlayers",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "entry": "EULA.js",
+    "name": "EULA",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

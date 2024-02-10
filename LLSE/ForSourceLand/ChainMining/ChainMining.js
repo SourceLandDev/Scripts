@@ -31,7 +31,6 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("ChainMining", "连锁采集", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/ChainMining/config.json");
 const alwaysEnabled = config.init("alwaysEnabled", false);
@@ -68,21 +67,23 @@ const eco = (() => {
 const command = config.init("command", "chainmining");
 config.close();
 if (!alwaysEnabled) {
-    const cmd = mc.newCommand(command, "修改连锁采集状态。", PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        out.success(
-            `连锁采集已${
-                (states[ori.player.xuid] = states[ori.player.xuid]
-                    ? false
-                    : true)
-                    ? "启用"
-                    : "禁用"
-            }`
-        );
+    mc.listen("onServerStarted", () => {
+        const cmd = mc.newCommand(command, "修改连锁采集状态。", PermType.Any);
+        cmd.overload();
+        cmd.setCallback((_cmd, ori, out, _res) => {
+            if (!ori.player) return out.error("commands.generic.noTargetMatch");
+            out.success(
+                `连锁采集已${
+                    (states[ori.player.xuid] = states[ori.player.xuid]
+                        ? false
+                        : true)
+                        ? "启用"
+                        : "禁用"
+                }`
+            );
+        });
+        cmd.setup();
     });
-    cmd.setup();
 }
 const states = {};
 const destroyingBlocks = {};

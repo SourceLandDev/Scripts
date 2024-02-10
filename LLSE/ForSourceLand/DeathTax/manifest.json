@@ -1,0 +1,10 @@
+{
+    "entry": "DeathTax.js",
+    "name": "DeathTax",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+{
+    "entry": "RedPacket.js",
+    "name": "RedPacket",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

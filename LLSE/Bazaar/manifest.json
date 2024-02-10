@@ -1,0 +1,10 @@
+{
+    "entry": "Bazaar.js",
+    "name": "Bazaar",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

@@ -31,7 +31,6 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("EULA", "用户协议", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/EULA/config.json");
 const serverName = config.init("serverName", "");
@@ -72,7 +71,7 @@ mc.listen("onJoin", pl => {
                     }
                     if (ll.hasExported("MessageSync", "SendMessageAsync"))
                         ll.imports("MessageSync", "SendMessageAsync")(
-                            `欢迎*${pl.realName}*加入了我们！`,
+                            `*${pl.realName}*\n加入了我们！`,
                             -2
                         );
                 }

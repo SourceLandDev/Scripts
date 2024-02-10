@@ -31,10 +31,9 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Transfer", "转账", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Transfer/config.json");
-const command = config.init("command", "transfer");
+const command = config.init("command", "transfor");
 const currencyType = config.init("currencyType", "llmoney");
 const currencyName = config.init("currencyName", "元");
 const eco = (() => {
@@ -64,13 +63,15 @@ const eco = (() => {
     }
 })();
 config.close();
-const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);
-cmd.overload();
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return out.error("commands.generic.noTargetMatch");
-    main(ori.player);
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "打开转账菜单。", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        main(ori.player);
+    });
+    cmd.setup();
 });
-cmd.setup();
 function main(pl) {
     const money = eco.get(pl);
     if (money <= 0) return pl.sendToast("经济", "§c转账失败：余额不足");

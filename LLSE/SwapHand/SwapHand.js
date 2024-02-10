@@ -1,6 +1,6 @@
 /*
 English:
-    DeathTax
+    SwapHand
     Copyright (C) 2023  Hosiyume starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    死亡税
+    交换主副手物品
     版权所有 © 2023  予纾 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,43 +31,23 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("DeathTax", "死亡税", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins/DeathTax/config.json");
-const tax = config.init("tax", 1 / 9);
-const currencyType = config.init("currencyType", "llmoney");
-const currencyName = config.init("currencyName", "元");
-const eco = (() => {
-    switch (currencyType) {
-        case "llmoney":
-            return {
-                add: (pl, money) => pl.addMoney(money),
-                reduce: (pl, money) => pl.reduceMoney(money),
-                get: pl => pl.getMoney(),
-                name: currencyName
-            };
-        case "scoreboard":
-            const scoreboard = config.init("scoreboard", "money");
-            return {
-                add: (pl, money) => pl.addScore(scoreboard, money),
-                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
-                get: pl => pl.getScore(scoreboard),
-                name: currencyName
-            };
-        case "xplevel":
-            return {
-                add: (pl, money) => pl.addLevel(money),
-                reduce: (pl, money) => pl.reduceLevel(money),
-                get: pl => pl.getLevel(),
-                name: "级经验"
-            };
-    }
-})();
+const config = new JsonConfigFile("plugins/SwapHand/config.json");
+const command = config.init("command", "swaphand");
 config.close();
-mc.listen("onPlayerDie", pl => {
-    const money = eco.get(pl);
-    const condition = money * tax + 1;
-    let reduce = Math.round(condition - Math.random() * condition);
-    eco.reduce(pl, reduce);
-    pl.tell(`扣除${reduce}${eco.name}`);
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "交换主副手物品。", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        const hand = ori.player.getHand();
+        if (hand.isOffhandItem) return;
+        const mainItem = hand.clone();
+        const offhand = ori.player.getOffHand();
+        const subItem = offhand.clone();
+        hand.set(subItem);
+        offhand.set(mainItem);
+        ori.player.refreshItems();
+    });
+    cmd.setup();
 });

@@ -31,7 +31,6 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("BlockIslandAllocation", "岛屿分配系统", [1, 0, 0]);
 
 const db = new KVDatabase("plugins/BlockIslandAllocation/data");
 if (!db.get("spawn"))

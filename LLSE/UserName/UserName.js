@@ -31,7 +31,6 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("UserName", "用户名", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/UserName/config.json");
 const command = config.init("command", "rename");
@@ -67,13 +66,15 @@ const eco = (() => {
 const regex = config.init("regex", []);
 config.close();
 const db = new KVDatabase("plugins/UserName/data");
-const cmd = mc.newCommand(command, "打开重命名。", PermType.Any);
-cmd.overload();
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return out.error("commands.generic.noTargetMatch");
-    main(ori.player);
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "打开重命名。", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        main(ori.player);
+    });
+    cmd.setup();
 });
-cmd.setup();
 mc.listen("onPreJoin", pl => {
     const nameData = db.get(pl.xuid);
     const name = nameData ? nameData.name : pl.realName;
@@ -83,6 +84,7 @@ mc.listen("onPreJoin", pl => {
         if (name != pl.realName) setName(pl, `${name}（${pl.realName}）`);
         if (name != player.realName)
             setName(player, `${name}（${pl.realName}）`);
+        return;
     }
     setName(pl, name);
 });
@@ -126,8 +128,9 @@ function main(pl, def) {
             }
             const money = eco.get(pl);
             let condition = 0;
-            for (let i = 1; i < nameData.times; ++i)
-                condition += (money * serviceCharge) / i;
+            if (nameData)
+                for (let i = 1; i < nameData.times; ++i)
+                    condition += (money * serviceCharge) / i;
             if (money < ++condition) {
                 pl.sendToast(
                     "重命名",

@@ -1,6 +1,6 @@
 /*
 English:
-    DynamicMaxPlayers
+    DynamicMOTD
     Copyright (C) 2023  Hosiyume starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    动态最多同时在线人数
+    动态MOTD
     版权所有 © 2023  予纾 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,9 +31,13 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("DynamicMaxPlayers", "动态玩家数量上限", [1, 0, 0]);
 
-mc.listen("onPreJoin", () =>
-    mc.setMaxPlayers(mc.getOnlinePlayers().length + 1)
-);
-mc.listen("onLeft", () => mc.setMaxPlayers(mc.getOnlinePlayers().length));
+const config = new JsonConfigFile("plugins/DynamicMOTD/config.json");
+const interval = config.init("interval", 1);
+const motd = config.init("motd", []);
+config.close();
+let index = 0;
+setInterval(() => {
+    mc.setMotd(motd[index]);
+    index = index == motd.length - 1 ? 0 : index + 1;
+}, interval * 5e3);

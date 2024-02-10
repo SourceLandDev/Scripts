@@ -31,7 +31,6 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Express", "物流", [1, 0, 1]);
 
 const config = new JsonConfigFile("plugins/Express/config.json");
 const command = config.init("command", "express");
@@ -65,13 +64,15 @@ const eco = (() => {
     }
 })();
 config.close();
-const cmd = mc.newCommand(command, "打开物流菜单。", PermType.Any);
-cmd.overload();
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return out.error("commands.generic.noTargetMatch");
-    main(ori.player);
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "打开物流菜单。", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        main(ori.player);
+    });
+    cmd.setup();
 });
-cmd.setup();
 function main(pl) {
     const plnms = [];
     const plsxuid = [];

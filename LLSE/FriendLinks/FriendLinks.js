@@ -31,16 +31,17 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("FriendLinks", "友情链接", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/FriendLinks/config.json");
 const command = config.init("command", "friendlinks");
 config.close();
-const cmd = mc.newCommand(command, "打开友链列表", PermType.Any);
-cmd.overload();
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return out.error("commands.generic.noTargetMatch");
-    main(ori.player);
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "打开友链列表", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        main(ori.player);
+    });
 });
 cmd.setup();
 const data = {};

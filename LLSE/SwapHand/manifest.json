@@ -1,0 +1,10 @@
+{
+    "entry": "SwapHand.js",
+    "name": "SwapHand",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

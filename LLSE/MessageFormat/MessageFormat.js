@@ -31,53 +31,52 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("MessageFormat", "消息格式化", [1, 0, 0]);
 
 const db = new KVDatabase("plugins/MessageFormat/data");
-const muteCommand = mc.newCommand("mute", "禁言。", PermType.GameMasters);
-muteCommand.mandatory("player", ParamType.Player);
-muteCommand.mandatory("tick", ParamType.Int);
-muteCommand.overload(["player", "tick"]);
-muteCommand.setCallback((_cmd, _ori, out, res) => {
-    if (!res.player || res.player.length <= 0)
-        return out.error("commands.generic.noTargetMatch");
-    const names = [];
-    for (const pl of res.player) {
-        db.set(pl.xuid, res.tick);
-        names.push(pl.realName);
-    }
-    out.success(`${names.join("、")}已被禁言${parseTime(res.tick)}`);
+mc.listen("onServerStarted", () => {
+    const muteCommand = mc.newCommand("mute", "禁言。", PermType.GameMasters);
+    muteCommand.mandatory("player", ParamType.Player);
+    muteCommand.mandatory("tick", ParamType.Int);
+    muteCommand.overload(["player", "tick"]);
+    muteCommand.setCallback((_cmd, _ori, out, res) => {
+        if (!res.player || res.player.length <= 0)
+            return out.error("commands.generic.noTargetMatch");
+        const names = [];
+        for (const pl of res.player) {
+            db.set(pl.xuid, res.tick);
+            names.push(pl.realName);
+        }
+        out.success(`${names.join("、")}已被禁言${parseTime(res.tick)}`);
+    });
+    muteCommand.setup();
+    const unmuteCommand = mc.newCommand(
+        "unmute",
+        "解除禁言。",
+        PermType.GameMasters
+    );
+    unmuteCommand.mandatory("player", ParamType.Player);
+    unmuteCommand.overload(["player"]);
+    unmuteCommand.setCallback((_cmd, _ori, out, res) => {
+        if (!res.player || res.player.length <= 0)
+            return out.error("commands.generic.noTargetMatch");
+        const names = [];
+        for (const pl of res.player) {
+            if (!db.get(pl.xuid)) return;
+            db.delete(pl.xuid);
+            names.push(pl.realName);
+        }
+        out.success(`已解除${names.join("、")}的禁言`);
+    });
+    unmuteCommand.setup();
 });
-muteCommand.setup();
-const unmuteCommand = mc.newCommand(
-    "unmute",
-    "解除禁言。",
-    PermType.GameMasters
-);
-unmuteCommand.mandatory("player", ParamType.Player);
-unmuteCommand.overload(["player"]);
-unmuteCommand.setCallback((_cmd, _ori, out, res) => {
-    if (!res.player || res.player.length <= 0)
-        return out.error("commands.generic.noTargetMatch");
-    const names = [];
-    for (const pl of res.player) {
-        if (!db.get(pl.xuid)) return;
-        db.delete(pl.xuid);
-        names.push(pl.realName);
-    }
-    out.success(`已解除${names.join("、")}的禁言`);
-});
-unmuteCommand.setup();
 const msgs = {};
 mc.listen("onChat", (pl, msg) => {
     const time = system.getTimeObj();
-    const msgHead = `${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${
-        time.m
-    } ${
+    const msgHead = `${
         ll.hasExported("UserName", "Get")
             ? ll.imports("UserName", "Get")(pl)
             : pl.realName
-    }§r：`;
+    }§r ${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${time.m}\n`;
     if (db.get(pl.xuid))
         for (const player of mc.getOnlinePlayers())
             player.tell(

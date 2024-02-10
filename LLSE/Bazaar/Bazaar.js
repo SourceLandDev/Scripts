@@ -31,7 +31,6 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Bazaar", "集市", [2, 0, 11]);
 
 const config = new JsonConfigFile("plugins/Bazaar/config.json");
 const command = config.init("command", "bazaar");
@@ -150,13 +149,15 @@ const eff = [
     "延长缓降",
     "加强迟缓"
 ];
-const cmd = mc.newCommand(command, "打开集市。", PermType.Any);
-cmd.overload();
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return out.error("commands.generic.noTargetMatch");
-    main(ori.player);
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "打开集市。", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        main(ori.player);
+    });
+    cmd.setup();
 });
-cmd.setup();
 mc.listen("onJoin", pl => {
     const sellers = db.get("sellers") ?? {};
     if (

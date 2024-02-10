@@ -31,7 +31,6 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("Menu", "菜单", [1, 0, 4]);
 
 const config = new JsonConfigFile("plugins/Menu/config.json");
 const menuItem = config.init("menuItem", {});
@@ -44,13 +43,15 @@ for (const command in commands) {
     );
     const title = menus.get("title", "菜单。");
     menus.close();
-    const cmd = mc.newCommand(command, title, PermType.Any);
-    cmd.overload();
-    cmd.setCallback((_cmd, ori, out, _res) => {
-        if (!ori.player) return out.error("commands.generic.noTargetMatch");
-        menu(ori.player, commands[command]);
+    mc.listen("onServerStarted", () => {
+        const cmd = mc.newCommand(command, title, PermType.Any);
+        cmd.overload();
+        cmd.setCallback((_cmd, ori, out, _res) => {
+            if (!ori.player) return out.error("commands.generic.noTargetMatch");
+            menu(ori.player, commands[command]);
+        });
+        cmd.setup();
     });
-    cmd.setup();
 }
 mc.listen("onUseItem", (pl, it) => {
     if (!(it.type in menuItem)) return;

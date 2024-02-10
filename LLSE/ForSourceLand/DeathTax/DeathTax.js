@@ -1,6 +1,6 @@
 /*
 English:
-    DynamicMOTD
+    DeathTax
     Copyright (C) 2023  Hosiyume starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    动态MOTD
+    死亡税
     版权所有 © 2023  予纾 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,14 +31,42 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("DynamicMOTD", "动态MOTD", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins/DynamicMOTD/config.json");
-const interval = config.init("interval", 1);
-const motd = config.init("motd", []);
+const config = new JsonConfigFile("plugins/DeathTax/config.json");
+const tax = config.init("tax", 1 / 9);
+const currencyType = config.init("currencyType", "llmoney");
+const currencyName = config.init("currencyName", "元");
+const eco = (() => {
+    switch (currencyType) {
+        case "llmoney":
+            return {
+                add: (pl, money) => pl.addMoney(money),
+                reduce: (pl, money) => pl.reduceMoney(money),
+                get: pl => pl.getMoney(),
+                name: currencyName
+            };
+        case "scoreboard":
+            const scoreboard = config.init("scoreboard", "money");
+            return {
+                add: (pl, money) => pl.addScore(scoreboard, money),
+                reduce: (pl, money) => pl.reduceScore(scoreboard, money),
+                get: pl => pl.getScore(scoreboard),
+                name: currencyName
+            };
+        case "xplevel":
+            return {
+                add: (pl, money) => pl.addLevel(money),
+                reduce: (pl, money) => pl.reduceLevel(money),
+                get: pl => pl.getLevel(),
+                name: "级经验"
+            };
+    }
+})();
 config.close();
-let index = 0;
-setInterval(() => {
-    mc.setMotd(motd[index]);
-    index = index == motd.length - 1 ? 0 : index + 1;
-}, interval * 5e3);
+mc.listen("onPlayerDie", pl => {
+    const money = eco.get(pl);
+    const condition = money * tax + 1;
+    let reduce = Math.round(condition - Math.random() * condition);
+    eco.reduce(pl, reduce);
+    pl.tell(`扣除${reduce}${eco.name}`);
+});

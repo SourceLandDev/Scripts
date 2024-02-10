@@ -1,0 +1,10 @@
+{
+    "entry": "DynamicMOTD.js",
+    "name": "DynamicMOTD",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

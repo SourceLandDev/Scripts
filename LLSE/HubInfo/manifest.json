@@ -1,0 +1,10 @@
+{
+    "entry": "HubInfo.js",
+    "name": "HubInfo",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

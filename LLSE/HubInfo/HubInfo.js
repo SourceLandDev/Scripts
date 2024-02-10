@@ -31,23 +31,25 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("HubInfo", "信息栏", [1, 0, 0]);
 
 const config = new JsonConfigFile("plugins/HubInfo/config.json");
 const command = config.init("command", "hubinfo");
 config.close();
 const db = new KVDatabase("plugins/HubInfo/data");
-const cmd = mc.newCommand(command, "修改信息栏状态。", PermType.Any);
-cmd.overload();
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return out.error("commands.generic.noTargetMatch");
-    db.set(ori.player.xuid, !db.get(ori.player.xuid));
-    out.success(`信息栏${db.get(ori.player.xuid) ? "已启用" : "已禁用"}`);
+mc.listen("onServerStarted", () => {
+    const cmd = mc.newCommand(command, "修改信息栏状态。", PermType.Any);
+    cmd.overload();
+    cmd.setCallback((_cmd, ori, out, _res) => {
+        if (!ori.player) return out.error("commands.generic.noTargetMatch");
+        const onoff = !db.get(ori.player.xuid);
+        db.set(ori.player.xuid, onoff);
+        if (!onoff) ori.player.removeSidebar();
+        out.success(`信息栏${onoff ? "已启用" : "已禁用"}`);
+    });
+    cmd.setup();
 });
-cmd.setup();
 setInterval(() => {
     for (const player of mc.getOnlinePlayers()) {
-        player.removeSidebar();
         if (!db.get(player.xuid)) continue;
         const dv = player.getDevice();
         const list = {};
@@ -71,6 +73,7 @@ setInterval(() => {
                         : "b"
                 }时延`
             ] = dv.lastPing;
+        player.removeSidebar();
         player.setSidebar(" ", list);
     }
 }, 1000);

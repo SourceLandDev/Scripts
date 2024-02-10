@@ -1,0 +1,10 @@
+{
+    "entry": "MessageFormat.js",
+    "name": "MessageFormat",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

@@ -1,6 +1,6 @@
 /*
 English:
-    SwapHand
+    DynamicMaxPlayers
     Copyright (C) 2023  Hosiyume starsdream00@icloud.com
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@ English:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 中文：
-    交换主副手物品
+    动态最多同时在线人数
     版权所有 © 2023  予纾 starsdream00@icloud.com
     本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版，
     或（您选择的）任何后来的版本重新发布和/或修改它。
@@ -31,21 +31,8 @@ English:
 */
 
 "use strict";
-ll.registerPlugin("SwapHand", "交换主副手物品", [1, 0, 0]);
 
-const config = new JsonConfigFile("plugins/SwapHand/config.json");
-const command = config.init("command", "swaphand");
-config.close();
-const cmd = mc.newCommand(command, "交换主副手物品。", PermType.Any);
-cmd.overload();
-cmd.setCallback((_cmd, ori, out, _res) => {
-    if (!ori.player) return out.error("commands.generic.noTargetMatch");
-    const hand = ori.player.getHand();
-    const mainItem = hand.clone();
-    const offhand = ori.player.getOffHand();
-    const subItem = offhand.clone();
-    hand.set(subItem);
-    offhand.set(mainItem);
-    ori.player.refreshItems();
-});
-cmd.setup();
+mc.listen("onPreJoin", () =>
+    mc.setMaxPlayers(mc.getOnlinePlayers().length + 1)
+);
+mc.listen("onLeft", () => mc.setMaxPlayers(mc.getOnlinePlayers().length));
