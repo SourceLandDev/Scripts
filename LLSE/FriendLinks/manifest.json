@@ -1,0 +1,10 @@
+{
+    "entry": "FriendLinks.js",
+    "name": "FriendLinks",
+    "type": "lse-quickjs",
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-quickjs"
+        }
+    ]
+}

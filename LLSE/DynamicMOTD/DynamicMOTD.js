@@ -37,7 +37,8 @@ const interval = config.init("interval", 1);
 const motd = config.init("motd", []);
 config.close();
 let index = 0;
-setInterval(() => {
-    mc.setMotd(motd[index]);
-    index = index == motd.length - 1 ? 0 : index + 1;
-}, interval * 5e3);
+if (index > 0)
+    setInterval(() => {
+        mc.setMotd(motd[index]);
+        index = index == motd.length - 1 ? 0 : index + 1;
+    }, interval * 5e3);

@@ -42,8 +42,8 @@ mc.listen("onServerStarted", () => {
         if (!ori.player) return out.error("commands.generic.noTargetMatch");
         main(ori.player);
     });
+    cmd.setup();
 });
-cmd.setup();
 const data = {};
 const taskCache = {};
 function main(pl) {
