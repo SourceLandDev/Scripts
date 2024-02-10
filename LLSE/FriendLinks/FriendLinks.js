@@ -101,15 +101,14 @@ function sendForm(pl) {
                 data[pl.xuid].links[arg].ip,
                 data[pl.xuid].links[arg].port
             );
+            const msg = `*${
+                ll.hasExported("UserName", "Get")
+                    ? ll.imports("UserName", "Get")(pl)
+                    : pl.realName
+            }*已去往${data[pl.xuid].links[arg].name}`;
+            mc.broadcast(msg);
             if (ll.hasExported("MessageSync", "SendMessageAsync"))
-                ll.imports("MessageSync", "SendMessageAsync")(
-                    `*${
-                        ll.hasExported("UserName", "Get")
-                            ? ll.imports("UserName", "Get")(pl)
-                            : pl.realName
-                    }*已去往${data[pl.xuid].links[arg].name}`,
-                    -2
-                );
+                ll.imports("MessageSync", "SendMessageAsync")(msg, -2);
             delete data[pl.xuid];
         }
     );
