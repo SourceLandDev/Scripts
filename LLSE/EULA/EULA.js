@@ -50,9 +50,14 @@ mc.listen("onJoin", pl => {
         (pl, arg) => {
             if (arg)
                 return pl.kick(
-                    "§l§4未同意用户协议，请勿使用本服提供的任何服务！"
+                    "§l§4未同意用户协议，无法使用我们提供的任何服务！"
                 );
             db.set(pl.xuid, true);
+            if (mc.getOnlinePlayers().length < 2) {
+                if (ll.hasExported("BlockIsland", "sendInit"))
+                    ll.imports("BlockIsland", "sendInit")(pl);
+                return;
+            }
             pl.sendModalForm(
                 "广播",
                 "是否向其他人广播你的加入",
