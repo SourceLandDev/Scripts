@@ -36,14 +36,14 @@ const db = new KVDatabase("plugins/MessageFormat/data");
 mc.listen("onServerStarted", () => {
     const muteCommand = mc.newCommand("mute", "禁言。", PermType.GameMasters);
     muteCommand.mandatory("player", ParamType.Player);
-    muteCommand.mandatory("tick", ParamType.Int);
-    muteCommand.overload(["player", "tick"]);
+    muteCommand.optional("min", ParamType.Int);
+    muteCommand.overload(["player", "min"]);
     muteCommand.setCallback((_cmd, _ori, out, res) => {
         if (!res.player || res.player.length <= 0)
             return out.error("commands.generic.noTargetMatch");
         const names = [];
         for (const pl of res.player) {
-            db.set(pl.xuid, res.tick);
+            db.set(pl.xuid, ("min" in res) ? (res.min * 60 * 20) : false);
             names.push(pl.realName);
         }
         out.success(`${names.join("、")}已被禁言${parseTime(res.tick)}`);
@@ -61,7 +61,7 @@ mc.listen("onServerStarted", () => {
             return out.error("commands.generic.noTargetMatch");
         const names = [];
         for (const pl of res.player) {
-            if (!db.get(pl.xuid)) return;
+            if (db.get(pl.xuid) === undefined) return;
             db.delete(pl.xuid);
             names.push(pl.realName);
         }
@@ -77,7 +77,7 @@ mc.listen("onChat", (pl, msg) => {
             ? ll.imports("UserName", "Get")(pl)
             : pl.realName
     }§r ${time.h < 10 ? 0 : ""}${time.h}:${time.m < 10 ? 0 : ""}${time.m}\n`;
-    if (db.get(pl.xuid))
+    if (db.get(pl.xuid) !== undefined)
         for (const player of mc.getOnlinePlayers())
             player.tell(
                 `${msgHead}${player.xuid == pl.xuid ? msg : "§o已被屏蔽"}`
@@ -96,7 +96,7 @@ mc.listen("onChat", (pl, msg) => {
 mc.listen("onTick", () => {
     for (const pl of mc.getOnlinePlayers()) {
         const tick = db.get(pl.xuid);
-        if (tick == null) continue;
+        if (typeof tick !== "number") continue;
         if (tick > 0) {
             db.set(pl.xuid, tick - 1);
             continue;
