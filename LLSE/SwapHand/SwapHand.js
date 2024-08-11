@@ -42,11 +42,13 @@ mc.listen("onServerStarted", () => {
         if (!ori.player) return out.error("commands.generic.noTargetMatch");
         const hand = ori.player.getHand();
         if (hand.isOffhandItem) return;
-        const mainItem = hand.clone();
         const offhand = ori.player.getOffHand();
-        const subItem = offhand.clone();
-        hand.set(subItem);
-        offhand.set(mainItem);
+        const mainItem = hand.isNull() ? undefined : hand.clone();
+        const subItem = offhand.isNull() ? undefined : offhand.clone();
+        if (mainItem) offhand.set(mainItem);
+        else offhand.setNull();
+        if (subItem) hand.set(subItem);
+        else hand.setNull();
         ori.player.refreshItems();
     });
     cmd.setup();

@@ -965,10 +965,13 @@ function itemTakedown(pl, uuid) {
                 sellers[pl.xuid].items.indexOf(uuid),
                 1
             );
-            pl.giveItem(
-                mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt)),
-                nowItems[uuid].count
-            );
+            let item = mc.newItem(NBT.parseSNBT(nowItems[uuid].snbt))
+            let count = nowItems[uuid].count;
+            while (count > 64) {
+                pl.giveItem(item, 64);
+                count -= 64;
+            }
+            if (count > 0) pl.giveItem(item, count);
             delete nowItems[uuid];
             db.set("items", nowItems);
             db.set("sellers", sellers);
